@@ -9,7 +9,7 @@ public class ChangeSyncOptions
     public string ElasticsearchUrl { get; set; } = default!;
     public int MaxRetries { get; set; } = 5;
     public ElasticSyncMode Mode { get; set; } = ElasticSyncMode.Realtime;
-    public int PollIntervalSeconds { get; set; } = 60;
+    public int PollIntervalSeconds { get; set; } = 60;//Only applicable for Interval mode
     public List<TrackedEntity> Entities { get; set; } = new();
 }
 

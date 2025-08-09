@@ -73,22 +73,32 @@ public class ChangeLogInstaller
         {
             var table = entity.Table;
             var pkName = GetPrimaryKeyName(conn, table);
-            var triggerName = $"trg_log_{table}";
+            var triggerName = $"trg_log_{table.ToLower()}";
 
             foreach (var action in new[] { "INSERT", "UPDATE", "DELETE" })
             {
+                string triggerFullName = $"{triggerName}_{action.ToLower()}";
+
                 sb.AppendLine($@"
-                DROP TRIGGER IF EXISTS {triggerName}_{action.ToLower()} ON {QuoteIfNeeded(table)};
-                CREATE TRIGGER {triggerName}_{action.ToLower()}
-                AFTER {action} ON {QuoteIfNeeded(table)}
-                FOR EACH ROW EXECUTE FUNCTION log_change('{pkName}');");
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                    SELECT 1 FROM pg_trigger t
+                    JOIN pg_class c ON t.tgrelid = c.oid
+                    WHERE t.tgname = '{triggerFullName}'
+                        AND c.relname = '{table}'                
+                    ) THEN
+                    CREATE TRIGGER {triggerFullName}
+                    AFTER INSERT ON {QuoteIfNeeded(table)}
+                    FOR EACH ROW EXECUTE FUNCTION log_change('{pkName}');
+                    END IF;
+                END;
+                $$;");   
             }
         }
-
-        var t =  sb.ToString();
-        Console.WriteLine(t);
-        return t;
+        return sb.ToString();
     }
+
     string QuoteIfNeeded(string name) => name.Any(char.IsUpper) ? $"\"{name}\"" : name;
 
     string GetPrimaryKeyName(NpgsqlConnection conn, string table)
