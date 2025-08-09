@@ -2,6 +2,8 @@ using Npgsql;
 using System.Text;
 using ChangeSync.Elastic.Postgres.Models;
 using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 
@@ -20,11 +22,11 @@ public class ChangeLogInstaller
         await conn.OpenAsync();
 
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = BuildInstallScript();
+        cmd.CommandText = BuildInstallScript(conn);
         await cmd.ExecuteNonQueryAsync();
     }
 
-    private string BuildInstallScript()
+    private string BuildInstallScript(NpgsqlConnection conn)
     {
         var sb = new StringBuilder();
 
@@ -60,18 +62,38 @@ public class ChangeLogInstaller
         foreach (var entity in _options.Entities)
         {
             var table = entity.Table;
+            var pkName = GetPrimaryKeyName(conn, table);
             var triggerName = $"trg_log_{table}";
 
             foreach (var action in new[] { "INSERT", "UPDATE", "DELETE" })
             {
                 sb.AppendLine($@"
-                DROP TRIGGER IF EXISTS {triggerName}_{action.ToLower()} ON {table};
+                DROP TRIGGER IF EXISTS {triggerName}_{action.ToLower()} ON {QuoteIfNeeded(table)};
                 CREATE TRIGGER {triggerName}_{action.ToLower()}
-                AFTER {action} ON {table}
+                AFTER {action} ON {QuoteIfNeeded(table)}
                 FOR EACH ROW EXECUTE FUNCTION log_change();");
             }
         }
 
-        return sb.ToString();
+        var t =  sb.ToString();
+        Console.WriteLine(t);
+        return t;
+    }
+    string QuoteIfNeeded(string name) => name.Any(char.IsUpper) ? $"\"{name}\"" : name;
+
+    string GetPrimaryKeyName(NpgsqlConnection conn, string table)
+    {
+        using var cmd = new NpgsqlCommand(@"
+        SELECT kcu.column_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu
+          ON tc.constraint_name = kcu.constraint_name
+         AND tc.table_schema = kcu.table_schema
+        WHERE tc.constraint_type = 'PRIMARY KEY'
+          AND tc.table_name = @table
+        LIMIT 1;", conn);
+
+        cmd.Parameters.AddWithValue("table", table);
+        return (string?)cmd.ExecuteScalar() ?? "id";
     }
 }

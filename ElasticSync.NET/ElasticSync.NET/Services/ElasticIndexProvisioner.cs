@@ -24,34 +24,36 @@ public class ElasticIndexProvisioner
             var indexName = entity.IndexVersion is not null ? $"{baseIndex}-{entity.IndexVersion}" : baseIndex;
 
             var exists = await _client.Indices.ExistsAsync(indexName);
-            if (exists.Exists) continue;
+            if (!exists.Exists)
+                Console.WriteLine($"Index - {indexName} - not exist");
+            
+            
+            //var createResponse = await _client.Indices.CreateAsync(indexName, c =>
+            //{
+            //    var map = c.Map<object>(m =>
+            //    {
+            //        if (entity.CustomMapping != null)
+            //        {
+            //            var desc = new TypeMappingDescriptor<object>();
+            //            entity.CustomMapping(desc); // apply config
+            //            return desc; // return mapping
+            //        }
+            //        else
+            //        {
+            //            return m.AutoMap(entity.EntityType);
+            //        }
+            //    });
 
-            var createResponse = await _client.Indices.CreateAsync(indexName, c =>
-            {
-                var map = c.Map<object>(m =>
-                {
-                    if (entity.CustomMapping != null)
-                    {
-                        var desc = new TypeMappingDescriptor<object>();
-                        entity.CustomMapping(desc); // apply config
-                        return desc; // return mapping
-                    }
-                    else
-                    {
-                        return m.AutoMap(entity.EntityType);
-                    }
-                });
+            //    return map;
+            //});
 
-                return map;
-            });
+            //if (!createResponse.IsValid)
+            //    throw new Exception($"Failed to create index {indexName}: {createResponse.DebugInformation}");
 
-            if (!createResponse.IsValid)
-                throw new Exception($"Failed to create index {indexName}: {createResponse.DebugInformation}");
-
-            if (entity.IndexVersion != null)
-            {
-                await _client.Indices.PutAliasAsync(indexName, baseIndex);
-            }
+            //if (entity.IndexVersion != null)
+            //{
+            //    await _client.Indices.PutAliasAsync(indexName, baseIndex);
+            //}
         }
     }
 }
