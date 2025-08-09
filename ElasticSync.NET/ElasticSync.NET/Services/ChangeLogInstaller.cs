@@ -45,17 +45,27 @@ public class ChangeLogInstaller
             );");
 
         sb.AppendLine(@"
-            CREATE OR REPLACE FUNCTION log_change() RETURNS trigger AS $$
+            CREATE OR REPLACE FUNCTION log_change() 
+            RETURNS trigger
+            AS $$
+            DECLARE
+                pk_column text := TG_ARGV[0];
+                rec_id TEXT;
             BEGIN
+
+                EXECUTE format('SELECT ($1).%I', pk_column)
+                USING COALESCE(NEW, OLD)
+                INTO rec_id;
+
                 INSERT INTO change_log (table_name, operation, record_id, payload)
                 VALUES (
                     TG_TABLE_NAME,
                     TG_OP,
-                    COALESCE(NEW.id, OLD.id)::TEXT,
+                    rec_id,
                     row_to_json(COALESCE(NEW, OLD))
                 );
                 PERFORM pg_notify('change_log_channel', 'new_change');
-                RETURN NULL;
+                RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;");
 
@@ -71,7 +81,7 @@ public class ChangeLogInstaller
                 DROP TRIGGER IF EXISTS {triggerName}_{action.ToLower()} ON {QuoteIfNeeded(table)};
                 CREATE TRIGGER {triggerName}_{action.ToLower()}
                 AFTER {action} ON {QuoteIfNeeded(table)}
-                FOR EACH ROW EXECUTE FUNCTION log_change();");
+                FOR EACH ROW EXECUTE FUNCTION log_change('{pkName}');");
             }
         }
 

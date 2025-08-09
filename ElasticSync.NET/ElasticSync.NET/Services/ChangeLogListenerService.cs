@@ -74,7 +74,7 @@ public class ChangeLogListenerService : BackgroundService
             var item = response.Items[i];
             var logId = logIdOrder[i];
 
-            if (item.IsValid && (item.Status == 200 || item.Status == 201))
+            if (item.IsValid || (item.Status == 200 || item.Status == 201))
                 successIds.Add(logId);
             else
                 failures.Add((logId, item.Error?.Reason ?? "Unknown error"));
