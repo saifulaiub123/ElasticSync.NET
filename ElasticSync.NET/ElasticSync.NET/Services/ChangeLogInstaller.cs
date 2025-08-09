@@ -1,0 +1,77 @@
+using Npgsql;
+using System.Text;
+using ChangeSync.Elastic.Postgres.Models;
+using System.Threading.Tasks;
+
+namespace ChangeSync.Elastic.Postgres.Services;
+
+public class ChangeLogInstaller
+{
+    private readonly ChangeSyncOptions _options;
+
+    public ChangeLogInstaller(ChangeSyncOptions options)
+    {
+        _options = options;
+    }
+
+    public async Task InstallAsync()
+    {
+        await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+        await conn.OpenAsync();
+
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = BuildInstallScript();
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    private string BuildInstallScript()
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine(@"
+            CREATE TABLE IF NOT EXISTS change_log (
+                id SERIAL PRIMARY KEY,
+                table_name TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                record_id TEXT NOT NULL,
+                payload JSONB NOT NULL,
+                processed BOOLEAN DEFAULT FALSE,
+                retry_count INT DEFAULT 0,
+                last_error TEXT,
+                dead_letter BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT now()
+            );");
+
+        sb.AppendLine(@"
+            CREATE OR REPLACE FUNCTION log_change() RETURNS trigger AS $$
+            BEGIN
+                INSERT INTO change_log (table_name, operation, record_id, payload)
+                VALUES (
+                    TG_TABLE_NAME,
+                    TG_OP,
+                    COALESCE(NEW.id, OLD.id)::TEXT,
+                    row_to_json(COALESCE(NEW, OLD))
+                );
+                PERFORM pg_notify('change_log_channel', 'new_change');
+                RETURN NULL;
+            END;
+            $$ LANGUAGE plpgsql;");
+
+        foreach (var entity in _options.Entities)
+        {
+            var table = entity.Table;
+            var triggerName = $"trg_log_{table}";
+
+            foreach (var action in new[] { "INSERT", "UPDATE", "DELETE" })
+            {
+                sb.AppendLine($@"
+                DROP TRIGGER IF EXISTS {triggerName}_{action.ToLower()} ON {table};
+                CREATE TRIGGER {triggerName}_{action.ToLower()}
+                AFTER {action} ON {table}
+                FOR EACH ROW EXECUTE FUNCTION log_change();");
+            }
+        }
+
+        return sb.ToString();
+    }
+}

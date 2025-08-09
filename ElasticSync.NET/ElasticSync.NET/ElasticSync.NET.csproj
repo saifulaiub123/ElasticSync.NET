@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>MD Saiful Islam</Authors>
+		<PackageId>ElasticSync.NET</PackageId>
+		<Version>1.0.0</Version>
+		<Description>Real-time data sync to Elasticsearch.</Description>
+		<PackageTags>postgresql;sqlserver,dot net,elasticsearch;sync;trigger;npgsql;nest</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="7.0.0" />
+		<PackageReference Include="Npgsql" Version="7.0.2" />
+		<PackageReference Include="Nest" Version="7.17.5" />
+		<PackageReference Include="Elasticsearch.Net" Version="7.17.5" />
+	</ItemGroup>
+
+</Project>
