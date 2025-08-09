@@ -8,6 +8,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using Microsoft.Extensions.Options;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 
@@ -22,18 +23,35 @@ public class ChangeLogListenerService : BackgroundService
         _options = options;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    {
+
+        if (_options.Mode == ElasticSyncMode.Realtime)
+        {
+            await ListenToPgNotifyAsync(cancellationToken);
+        }
+        else if (_options.Mode == ElasticSyncMode.Interval)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await ProcessChangeLogsAsync();
+
+                await Task.Delay(TimeSpan.FromSeconds(_options.PollIntervalSeconds), cancellationToken);
+            }
+        }
+    }
+    private async Task ListenToPgNotifyAsync(CancellationToken cancellationToken)
     {
         await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
-        await conn.OpenAsync(stoppingToken);
+        await conn.OpenAsync(cancellationToken);
 
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "LISTEN change_log_channel;";
         await cmd.ExecuteNonQueryAsync();
 
-        while (!stoppingToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
-            await conn.WaitAsync(stoppingToken);
+            await conn.WaitAsync(cancellationToken);
             await ProcessChangeLogsAsync();
         }
     }

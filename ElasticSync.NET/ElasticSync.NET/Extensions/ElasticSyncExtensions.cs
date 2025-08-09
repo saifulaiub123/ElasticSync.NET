@@ -9,12 +9,12 @@ namespace ChangeSync.Elastic.Postgres.Extensions;
 
 public static class ElasticSyncExtensions
 {
-    public static IServiceCollection AddElasticSyncEngine(this IServiceCollection services, Action<ChangeSyncOptions> setup)
+    public static IServiceCollection AddElasticSyncEngine(this IServiceCollection services, Action<ChangeSyncOptions> configure)
     {
 		try
 		{
             var options = new ChangeSyncOptions();
-            setup(options);
+            configure(options);
 
             services.AddSingleton(options);
             services.AddSingleton<ElasticClient>(_ =>
