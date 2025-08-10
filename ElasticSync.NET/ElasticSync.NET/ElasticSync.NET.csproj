@@ -11,6 +11,7 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/saifulaiub123/ElasticSync.NET</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/saifulaiub123/ElasticSync.NET</RepositoryUrl>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,6 +20,7 @@
 		<PackageReference Include="Npgsql" Version="7.0.2" />
 		<PackageReference Include="Nest" Version="7.17.5" />
 		<PackageReference Include="Elasticsearch.Net" Version="7.17.5" />
+		<None Include="docs\readme.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 </Project>
