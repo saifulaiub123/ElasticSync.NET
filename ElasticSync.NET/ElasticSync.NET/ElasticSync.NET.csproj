@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>MD Saiful Islam</Authors>
 		<PackageId>ElasticSync.NET</PackageId>
 		<Version>1.0.0</Version>
-		<Description>Real-time data sync to Elasticsearch.</Description>
+		<Description>Real-time/Interval based data sync with Elasticsearch.</Description>
 		<PackageTags>postgresql;sqlserver,dot net,elasticsearch;sync;trigger;npgsql;nest</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/saifulaiub123/ElasticSync.NET</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/saifulaiub123/ElasticSync.NET</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
