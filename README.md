@@ -26,7 +26,7 @@ It’s designed for teams that want **instant search indexing** without building
 ```sh
 dotnet add package ElasticSync.NET
 
-
+```sh
 
 2. Requirements
 .NET 6, .NET 7, or .NET 8
