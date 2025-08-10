@@ -1,6 +1,6 @@
 # ElasticSync.NET
 
-ElasticSync.NET is a high-performance .NET library that synchronizes PostgreSQL data to Elasticsearch in **real-time** with built-in reliability, scalability, and monitoring.
+**ElasticSync.NET** is a high-performance .NET library that synchronizes PostgreSQL data to Elasticsearch in **real-time** with built-in reliability, scalability, and monitoring.
 
 It’s designed for teams that want **instant search indexing** without building and maintaining complex change-tracking pipelines.
 
@@ -21,20 +21,19 @@ It’s designed for teams that want **instant search indexing** without building
 
 ## 🚀 Getting Started
 
-### 1. Install the NuGet Package
+### Install the NuGet Package
 
 ```sh
 dotnet add package ElasticSync.NET
+```
 
-```sh
-
-2. Requirements
+# Requirements
 .NET 6, .NET 7, or .NET 8
 PostgreSQL 13+ (with trigger support)
 Elasticsearch 8.x (or compatible OpenSearch version)
 
-3.Quick Example
-
+# Basic Usage
+```sh
 builder.Services.AddElasticSyncEngine(options =>
 {
     options.PostgresConnectionString = builder.Configuration.GetConnectionString("DbConnectionString");
@@ -46,8 +45,8 @@ builder.Services.AddElasticSyncEngine(options =>
         new TrackedEntity { Table = "customers", EntityType = typeof(Customer), PrimaryKey = "id", IndexName = "customers" }
     );
 });
-
-4. Contributing
+```
+# Contributing
 
 We welcome contributions!
 Fork the repository
@@ -56,5 +55,5 @@ Commit your changes (git commit -m 'Add my feature')
 Push to your fork (git push origin feature/my-feature)
 Open a Pull Request
 
-5. License
+# License
 This project is licensed under the MIT License
