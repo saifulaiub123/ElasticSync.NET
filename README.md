@@ -1,2 +1,60 @@
 # ElasticSync.NET
-Real-time data sync to Elasticsearch
+
+ElasticSync.NET is a high-performance .NET library that synchronizes PostgreSQL data to Elasticsearch in **real-time** with built-in reliability, scalability, and monitoring.
+
+It’s designed for teams that want **instant search indexing** without building and maintaining complex change-tracking pipelines.
+
+---
+
+## ✨ Features
+
+- **Real-time sync** from Relational Database to Elasticsearch
+- **Supported Database** PostgreSQL
+- **Multiple entity type support** (e.g., Products, Orders, Customers)
+- **Automatic trigger & change tracking** in PostgreSQL
+- **Parallel workers** Pending...
+- **Retry logic** for transient errors
+- **Bulk indexing** for performance optimization
+- **Optional dashboard** Pending...
+
+---
+
+## 🚀 Getting Started
+
+### 1. Install the NuGet Package
+
+```sh
+dotnet add package ElasticSync.NET
+
+
+
+2. Requirements
+.NET 6, .NET 7, or .NET 8
+PostgreSQL 13+ (with trigger support)
+Elasticsearch 8.x (or compatible OpenSearch version)
+
+3.Quick Example
+
+builder.Services.AddElasticSyncEngine(options =>
+{
+    options.PostgresConnectionString = builder.Configuration.GetConnectionString("DbConnectionString");
+    options.ElasticsearchUrl = builder.Configuration["ElasticsearchUri"];
+    options.Mode = ElasticSyncMode.Interval;//Default ElasticSyncMode.RealTime
+    options.PollIntervalSeconds = 5;
+    options.Entities.Add
+    (
+        new TrackedEntity { Table = "customers", EntityType = typeof(Customer), PrimaryKey = "id", IndexName = "customers" }
+    );
+});
+
+4. Contributing
+
+We welcome contributions!
+Fork the repository
+Create a new branch (git checkout -b feature/my-feature)
+Commit your changes (git commit -m 'Add my feature')
+Push to your fork (git push origin feature/my-feature)
+Open a Pull Request
+
+5. License
+This project is licensed under the MIT License
