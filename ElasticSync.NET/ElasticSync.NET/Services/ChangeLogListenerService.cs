@@ -75,11 +75,21 @@ public class ChangeLogListenerService : BackgroundService
 
             logIdOrder.Add(log.Id);
 
-            bulk.Index<object>(d => d
-                .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
-                .Id(entityId)
-                .Document(entity)
-            );
+            if (log.Operation == "DELETE")
+            {
+                bulk.Delete<dynamic>(op => op
+                    .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
+                    .Id(entityId)
+                );
+            }
+            else
+            {
+                bulk.Index<object>(d => d
+                    .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
+                    .Id(entityId)
+                    .Document(entity)
+                );
+            }  
         }
 
         var response = await _elastic.BulkAsync(bulk);

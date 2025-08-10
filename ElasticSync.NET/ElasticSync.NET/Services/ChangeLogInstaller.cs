@@ -65,7 +65,7 @@ public class ChangeLogInstaller
                     row_to_json(COALESCE(NEW, OLD))
                 );
                 PERFORM pg_notify('change_log_channel', 'new_change');
-                RETURN NEW;
+                RETURN NULL;
             END;
             $$ LANGUAGE plpgsql;");
 
@@ -89,7 +89,7 @@ public class ChangeLogInstaller
                         AND c.relname = '{table}'                
                     ) THEN
                     CREATE TRIGGER {triggerFullName}
-                    AFTER INSERT ON {QuoteIfNeeded(table)}
+                    AFTER {action} ON {QuoteIfNeeded(table)}
                     FOR EACH ROW EXECUTE FUNCTION log_change('{pkName}');
                     END IF;
                 END;
