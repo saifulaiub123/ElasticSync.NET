@@ -29,21 +29,20 @@ public static class ElasticSyncExtensions
 
             Task.Run(async () =>
             {
+                await Task.Delay(TimeSpan.FromSeconds(15));
+
                 var installer = new ChangeLogInstaller(options);
                 await installer.InstallAsync();
 
                 var client = new ElasticClient(new ConnectionSettings(new Uri(options.ElasticsearchUrl)));
                 var provisioner = new ElasticIndexProvisioner(client, options);
                 await provisioner.EnsureIndicesExistAsync();
-            }).Wait();
+            });
         }
 		catch (Exception ex)
 		{
             Console.WriteLine(ex.ToString());
-
-			var error =  ex;
 		}
-
         return services;
     }
 }

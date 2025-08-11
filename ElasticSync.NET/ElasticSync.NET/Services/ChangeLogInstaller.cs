@@ -29,9 +29,28 @@ public class ChangeLogInstaller
     private string BuildInstallScript(NpgsqlConnection conn)
     {
         var sb = new StringBuilder();
+        var namingPrefix = "elastic_sync_";
 
-        sb.AppendLine(@"
-            CREATE TABLE IF NOT EXISTS change_log (
+        // Drop old table
+        sb.AppendLine($@"
+            DROP TABLE IF EXISTS change_log CASCADE;
+        ");
+
+        // Drop old function
+        sb.AppendLine($@"
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM pg_proc 
+                    WHERE proname = 'log_change' AND pronargs = 0
+                ) THEN
+                    DROP FUNCTION log_change() CASCADE;
+                END IF;
+            END $$;
+        ");
+
+        sb.AppendLine($@"
+            CREATE TABLE IF NOT EXISTS {namingPrefix}change_log (
                 id SERIAL PRIMARY KEY,
                 table_name TEXT NOT NULL,
                 operation TEXT NOT NULL,
@@ -44,8 +63,8 @@ public class ChangeLogInstaller
                 created_at TIMESTAMP DEFAULT now()
             );");
 
-        sb.AppendLine(@"
-            CREATE OR REPLACE FUNCTION log_change() 
+        sb.AppendLine($@"
+            CREATE OR REPLACE FUNCTION {namingPrefix}log_change() 
             RETURNS trigger
             AS $$
             DECLARE
@@ -57,14 +76,14 @@ public class ChangeLogInstaller
                 USING COALESCE(NEW, OLD)
                 INTO rec_id;
 
-                INSERT INTO change_log (table_name, operation, record_id, payload)
+                INSERT INTO {namingPrefix}change_log (table_name, operation, record_id, payload)
                 VALUES (
                     TG_TABLE_NAME,
                     TG_OP,
                     rec_id,
                     row_to_json(COALESCE(NEW, OLD))
                 );
-                PERFORM pg_notify('change_log_channel', 'new_change');
+                PERFORM pg_notify('{namingPrefix}change_log_channel', 'new_change');
                 RETURN NULL;
             END;
             $$ LANGUAGE plpgsql;");
@@ -77,20 +96,38 @@ public class ChangeLogInstaller
 
             foreach (var action in new[] { "INSERT", "UPDATE", "DELETE" })
             {
-                string triggerFullName = $"{triggerName}_{action.ToLower()}";
+                string oldTriggerName = $"{triggerName}_{action.ToLower()}";
+                string newTriggerName = $"{namingPrefix}{triggerName}_{action.ToLower()}";
+
+                //DROP TRIGGER
+                sb.AppendLine($@"
+                    DO $$
+                    BEGIN
+                        IF EXISTS (
+                            SELECT 1 FROM pg_trigger t
+                                JOIN pg_class c ON t.tgrelid = c.oid
+                                WHERE t.tgname = '{oldTriggerName}'
+                                AND c.relname = '{table}'  
+                        ) THEN
+                            DROP TRIGGER IF EXISTS {oldTriggerName} ON {table};
+                        END IF;
+                    END $$;
+                ");
+
 
                 sb.AppendLine($@"
                 DO $$
                 BEGIN
+                    
                     IF NOT EXISTS (
                     SELECT 1 FROM pg_trigger t
                     JOIN pg_class c ON t.tgrelid = c.oid
-                    WHERE t.tgname = '{triggerFullName}'
+                    WHERE t.tgname = '{newTriggerName}'
                         AND c.relname = '{table}'                
                     ) THEN
-                    CREATE TRIGGER {triggerFullName}
+                    CREATE TRIGGER {newTriggerName}
                     AFTER {action} ON {QuoteIfNeeded(table)}
-                    FOR EACH ROW EXECUTE FUNCTION log_change('{pkName}');
+                    FOR EACH ROW EXECUTE FUNCTION {namingPrefix}log_change('{pkName}');
                     END IF;
                 END;
                 $$;");   

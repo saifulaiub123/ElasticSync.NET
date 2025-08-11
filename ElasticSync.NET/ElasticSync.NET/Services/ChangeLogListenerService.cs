@@ -8,7 +8,6 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using Microsoft.Extensions.Options;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 
@@ -16,6 +15,7 @@ public class ChangeLogListenerService : BackgroundService
 {
     private readonly ElasticClient _elastic;
     private readonly ChangeSyncOptions _options;
+    private readonly string _namingPrefix = "elastic_sync_";
 
     public ChangeLogListenerService(ElasticClient elastic, ChangeSyncOptions options)
     {
@@ -25,19 +25,24 @@ public class ChangeLogListenerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-
-        if (_options.Mode == ElasticSyncMode.Realtime)
+        try
         {
-            await ListenToPgNotifyAsync(cancellationToken);
-        }
-        else if (_options.Mode == ElasticSyncMode.Interval)
-        {
-            while (!cancellationToken.IsCancellationRequested)
+            if (_options.Mode == ElasticSyncMode.Realtime)
             {
-                await ProcessChangeLogsAsync();
-
-                await Task.Delay(TimeSpan.FromSeconds(_options.PollIntervalSeconds), cancellationToken);
+                await ListenToPgNotifyAsync(cancellationToken);
             }
+            else if (_options.Mode == ElasticSyncMode.Interval)
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(_options.PollIntervalSeconds), cancellationToken);
+                    await ProcessChangeLogsAsync();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
         }
     }
     private async Task ListenToPgNotifyAsync(CancellationToken cancellationToken)
@@ -46,7 +51,7 @@ public class ChangeLogListenerService : BackgroundService
         await conn.OpenAsync(cancellationToken);
 
         await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "LISTEN change_log_channel;";
+        cmd.CommandText = $"LISTEN {_namingPrefix}change_log_channel;";
         await cmd.ExecuteNonQueryAsync();
 
         while (!cancellationToken.IsCancellationRequested)
@@ -107,7 +112,6 @@ public class ChangeLogListenerService : BackgroundService
             else
                 failures.Add((logId, item.Error?.Reason ?? "Unknown error"));
         }
-
         await MarkLogsAsProcessed(successIds);
         await HandleFailedLogs(failures);
     }
@@ -119,9 +123,9 @@ public class ChangeLogListenerService : BackgroundService
         await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
         await conn.OpenAsync();
 
-        await using var cmd = new NpgsqlCommand(@"
+        await using var cmd = new NpgsqlCommand($@"
             SELECT id, table_name, operation, record_id, payload, retry_count
-            FROM change_log
+            FROM {_namingPrefix}change_log
             WHERE processed = FALSE AND dead_letter = FALSE
             ORDER BY id
             LIMIT 100", conn);
@@ -139,7 +143,6 @@ public class ChangeLogListenerService : BackgroundService
                 RetryCount = reader.GetInt32(5)
             });
         }
-
         return logs;
     }
 
@@ -150,7 +153,7 @@ public class ChangeLogListenerService : BackgroundService
         await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
         await conn.OpenAsync();
 
-        await using var cmd = new NpgsqlCommand("UPDATE change_log SET processed = TRUE WHERE id = ANY(@ids)", conn);
+        await using var cmd = new NpgsqlCommand($"UPDATE {_namingPrefix}change_log SET processed = TRUE WHERE id = ANY(@ids)", conn);
         cmd.Parameters.AddWithValue("ids", successIds.ToArray());
         await cmd.ExecuteNonQueryAsync();
     }
@@ -164,8 +167,8 @@ public class ChangeLogListenerService : BackgroundService
 
         foreach (var (logId, error) in failures)
         {
-            var cmd = new NpgsqlCommand(@"
-                UPDATE change_log
+            var cmd = new NpgsqlCommand($@"
+                UPDATE {_namingPrefix}change_log
                 SET retry_count = retry_count + 1,
                     last_error = @error,
                     dead_letter = retry_count + 1 >= @maxRetries
