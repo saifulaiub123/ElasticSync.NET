@@ -1,0 +1,6 @@
+@ElasticSyncExample_HostAddress = http://localhost:5187
+
+GET {{ElasticSyncExample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
