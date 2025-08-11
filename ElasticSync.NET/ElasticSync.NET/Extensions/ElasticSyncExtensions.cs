@@ -1,5 +1,6 @@
 using ChangeSync.Elastic.Postgres.Models;
 using ChangeSync.Elastic.Postgres.Services;
+using ElasticSync.NET.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 using System;
@@ -25,6 +26,7 @@ public static class ElasticSyncExtensions
 
             services.AddSingleton<ChangeLogInstaller>();
             services.AddSingleton<ElasticIndexProvisioner>();
+            services.AddSingleton<IElasticSyncNetService, ElasticSyncNetService>();
             services.AddHostedService<ChangeLogListenerService>();
 
             Task.Run(async () =>
