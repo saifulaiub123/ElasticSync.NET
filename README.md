@@ -46,8 +46,10 @@ builder.Services.AddElasticSyncEngine(options =>
     );
 });
 ```
-# Uninstall/Clean Up
-If you want to remove the package to clean up all the database object you need to run a script which you will find under **UninstallScript** folder
+# Uninstall/Clean Up DB Object
+
+If you want to remove the package to clean up all the database object you need to run a script which you will find under **UninstallScript** folder. **UninstallScript** is applicable from version **1.0.1**
+
 # Contributing
 
 We welcome contributions!
