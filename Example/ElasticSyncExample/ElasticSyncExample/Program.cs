@@ -1,4 +1,7 @@
+using ChangeSync.Elastic.Postgres.Extensions;
+using ChangeSync.Elastic.Postgres.Models;
 using ElasticSyncExample;
+using ElasticSyncExample.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,12 +16,31 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString")));
 
+builder.Services.AddElasticSyncEngine(options =>
+{
+    options.PostgresConnectionString = builder.Configuration.GetConnectionString("DbConnectionString");
+    options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
+    options.Mode = ElasticSyncMode.Realtime;
+    options.PollIntervalSeconds = 20;
+    options.Entities = new List<TrackedEntity>
+    {
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
+        new TrackedEntity { Table = "Orders", EntityType = typeof(Order), PrimaryKey = "Id", IndexName = "orders" },
+        new TrackedEntity { Table = "OrderItems", EntityType = typeof(OrderItem), PrimaryKey = "Id", IndexName = "orderitems" },
+        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
+        new TrackedEntity { Table = "Employees", EntityType = typeof(Employee), PrimaryKey = "Id", IndexName = "employees" },
+        new TrackedEntity { Table = "Departments", EntityType = typeof(Department), PrimaryKey = "Id", IndexName = "departments" },
+        new TrackedEntity { Table = "Addresses", EntityType = typeof(Address), PrimaryKey = "Id", IndexName = "addresses" },
+    };
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+    //(new Seed()).SeedAsync(db).GetAwaiter().GetResult();
 }
 
 // Configure the HTTP request pipeline.

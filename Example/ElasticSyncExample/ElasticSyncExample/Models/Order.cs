@@ -10,6 +10,6 @@
         public Customer Customer { get; set; } = null!;
 
         public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
-        public Payment? Payment { get; set; }
+        //public Payment? Payment { get; set; }
     }
 }

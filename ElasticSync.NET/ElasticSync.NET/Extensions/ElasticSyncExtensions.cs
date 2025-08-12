@@ -31,7 +31,7 @@ public static class ElasticSyncExtensions
 
             Task.Run(async () =>
             {
-                await Task.Delay(TimeSpan.FromSeconds(15));
+                await Task.Delay(TimeSpan.FromSeconds(5));
 
                 var installer = new ChangeLogInstaller(options);
                 await installer.InstallAsync();

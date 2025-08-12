@@ -16,6 +16,7 @@ public class ChangeLogListenerService : BackgroundService
     private readonly IElasticSyncNetService _elasticSyncNetService;
 
     private readonly string _namingPrefix = "elastic_sync_";
+    private int Count { get; set; } = 0;
 
     public ChangeLogListenerService(ElasticClient elastic, ChangeSyncOptions options, IElasticSyncNetService elasticSyncNetService)
     {
@@ -58,6 +59,7 @@ public class ChangeLogListenerService : BackgroundService
         while (!cancellationToken.IsCancellationRequested)
         {
             await conn.WaitAsync(cancellationToken);
+            Console.WriteLine($"{Count++} -- Change detected, processing change logs...");
             await _elasticSyncNetService.ProcessChangeLogsAsync();
         }
     } 

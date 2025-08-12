@@ -23,7 +23,7 @@ namespace ElasticSync.NET.Services
 
         public virtual async Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync()
         {
-            var logs = new List<ChangeLogEntry>();
+            var logs = new List<ChangeLogEntry>(_options.BatchSize);
 
             await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
             await conn.OpenAsync();
@@ -33,7 +33,7 @@ namespace ElasticSync.NET.Services
             FROM {_namingPrefix}change_log
             WHERE processed = FALSE AND dead_letter = FALSE
             ORDER BY id
-            LIMIT 50", conn);
+            LIMIT {_options.BatchSize}", conn);
 
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -65,57 +65,64 @@ namespace ElasticSync.NET.Services
 
         public virtual async Task ProcessChangeLogsAsync()
         {
-            var logs = await FetchUnprocessedLogsAsync();
-            if (!logs.Any()) return;
+            var logs = new List<ChangeLogEntry>(_options.BatchSize);
 
-            var bulk = new BulkDescriptor();
-            var logIdOrder = new List<int>();
-
-            foreach (var log in logs)
+            while (true) 
             {
-                var entityConfig = _options.Entities.FirstOrDefault(e => e.Table.Equals(log.TableName, StringComparison.OrdinalIgnoreCase));
-                if (entityConfig == null) continue;
+                logs = await FetchUnprocessedLogsAsync();
+                if (!logs.Any()) break;
 
-                var entity = JsonSerializer.Deserialize(log.Payload, entityConfig.EntityType);
-                var entityId = entityConfig.EntityType.GetProperty(entityConfig.PrimaryKey)?.GetValue(entity)?.ToString();
-                if (string.IsNullOrWhiteSpace(entityId)) continue;
 
-                logIdOrder.Add(log.Id);
+                var bulk = new BulkDescriptor();
+                var logIdOrder = new List<int>();
 
-                if (log.Operation == "DELETE")
+                foreach (var log in logs)
                 {
-                    bulk.Delete<dynamic>(op => op
-                        .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
-                        .Id(entityId)
-                    );
+                    var entityConfig = _options.Entities.FirstOrDefault(e => e.Table.Equals(log.TableName, StringComparison.OrdinalIgnoreCase));
+                    if (entityConfig == null) continue;
+
+                    var entity = JsonSerializer.Deserialize(log.Payload, entityConfig.EntityType);
+                    var entityId = entityConfig.EntityType.GetProperty(entityConfig.PrimaryKey)?.GetValue(entity)?.ToString();
+
+                    if (string.IsNullOrWhiteSpace(entityId)) continue;
+
+                    logIdOrder.Add(log.Id);
+
+                    if (log.Operation == "DELETE")
+                    {
+                        bulk.Delete<dynamic>(op => op
+                            .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
+                            .Id(entityId)
+                        );
+                    }
+                    else
+                    {
+                        bulk.Index<object>(d => d
+                            .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
+                            .Id(entityId)
+                            .Document(entity)
+                        );
+                    }
                 }
-                else
+
+                var response = await _elastic.BulkAsync(bulk);
+
+                var successIds = new List<int>();
+                var failures = new List<(int, string)>();
+
+                for (int i = 0; i < response.Items.Count; i++)
                 {
-                    bulk.Index<object>(d => d
-                        .Index(entityConfig.IndexVersion is not null ? $"{entityConfig.IndexName}-{entityConfig.IndexVersion}" : entityConfig.IndexName ?? log.TableName)
-                        .Id(entityId)
-                        .Document(entity)
-                    );
+                    var item = response.Items[i];
+                    var logId = logIdOrder[i];
+
+                    if (item.IsValid || (item.Status == 200 || item.Status == 201))
+                        successIds.Add(logId);
+                    else
+                        failures.Add((logId, item.Error?.Reason ?? "Unknown error"));
                 }
+                await MarkLogsAsProcessed(successIds);
+                await HandleFailedLogs(failures);
             }
-
-            var response = await _elastic.BulkAsync(bulk);
-
-            var successIds = new List<int>();
-            var failures = new List<(int, string)>();
-
-            for (int i = 0; i < response.Items.Count; i++)
-            {
-                var item = response.Items[i];
-                var logId = logIdOrder[i];
-
-                if (item.IsValid || (item.Status == 200 || item.Status == 201))
-                    successIds.Add(logId);
-                else
-                    failures.Add((logId, item.Error?.Reason ?? "Unknown error"));
-            }
-            await MarkLogsAsProcessed(successIds);
-            await HandleFailedLogs(failures);
         }
 
         private async Task HandleFailedLogs(List<(int logId, string error)> failures)

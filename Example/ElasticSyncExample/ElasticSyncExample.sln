@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSyncExample", "ElasticSyncExample\ElasticSyncExample.csproj", "{9413AA38-F573-4E89-9508-9446A3FBC9D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.NET", "..\..\ElasticSync.NET\ElasticSync.NET\ElasticSync.NET.csproj", "{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{9413AA38-F573-4E89-9508-9446A3FBC9D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9413AA38-F573-4E89-9508-9446A3FBC9D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9413AA38-F573-4E89-9508-9446A3FBC9D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

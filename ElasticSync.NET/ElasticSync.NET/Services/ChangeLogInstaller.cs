@@ -4,6 +4,8 @@ using ChangeSync.Elastic.Postgres.Models;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using System.Diagnostics;
+using System.Threading;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 
@@ -18,12 +20,25 @@ public class ChangeLogInstaller
 
     public async Task InstallAsync()
     {
-        await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
-        await conn.OpenAsync();
+        try
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = BuildInstallScript(conn);
-        await cmd.ExecuteNonQueryAsync();
+            await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+            await conn.OpenAsync();
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = BuildInstallScript(conn);
+            await cmd.ExecuteNonQueryAsync();
+
+            sw.Stop();
+            Console.Write($"times taken to create 30 triggers :  {sw.Elapsed.Duration().TotalMilliseconds} ms");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
     }
 
     private string BuildInstallScript(NpgsqlConnection conn)
@@ -133,6 +148,7 @@ public class ChangeLogInstaller
                 $$;");   
             }
         }
+        //Console.WriteLine(sb.ToString());
         return sb.ToString();
     }
 

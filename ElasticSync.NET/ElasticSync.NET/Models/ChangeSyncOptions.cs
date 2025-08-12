@@ -8,6 +8,7 @@ public class ChangeSyncOptions
     public string PostgresConnectionString { get; set; } = default!;
     public string ElasticsearchUrl { get; set; } = default!;
     public int MaxRetries { get; set; } = 5;
+    public int BatchSize { get; set; } = 100; //Number of logs to sync in one batch
     public ElasticSyncMode Mode { get; set; } = ElasticSyncMode.Realtime;
     public int PollIntervalSeconds { get; set; } = 60;//Only applicable for Interval mode
     public List<TrackedEntity> Entities { get; set; } = new();
