@@ -5,7 +5,8 @@
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>MD Saiful Islam</Authors>
 		<PackageId>ElasticSync.NET</PackageId>
-		<Version>1.0.2</Version>
+		<PackageIcon>icon.png</PackageIcon>
+		<Version>1.0.3</Version>
 		<Description>Real-time/Interval based data sync with Elasticsearch.</Description>
 		<PackageTags>postgresql;sqlserver,dot net,elasticsearch;sync;trigger;npgsql;nest</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -21,6 +22,7 @@
 		<PackageReference Include="Nest" Version="7.17.5" />
 		<PackageReference Include="Elasticsearch.Net" Version="7.17.5" />
 		<None Include="docs\readme.md" Pack="true" PackagePath="\"/>
+		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 </Project>
