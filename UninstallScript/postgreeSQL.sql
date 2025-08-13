@@ -24,7 +24,7 @@ BEGIN
         FROM information_schema.routines
         WHERE routine_name LIKE 'elastic_sync_%'
     LOOP
-        EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(text) CASCADE;', func.routine_schema, func.routine_name);
+        EXECUTE format('DROP FUNCTION IF EXISTS %I.%I CASCADE;', func.routine_schema, func.routine_name);
         -- Adjust arguments list if your functions have different signatures
     END LOOP;
 END;
