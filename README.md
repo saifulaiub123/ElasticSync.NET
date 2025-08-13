@@ -41,10 +41,10 @@ builder.Services.AddElasticSyncEngine(options =>
     options.Mode = ElasticSyncMode.Interval;//Default ElasticSyncMode.RealTime
     options.PollIntervalSeconds = 5;
     options.Entities = new List<TrackedEntity>
-{
-    new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
-    new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
-};
+    {
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
+        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
+    };
 });
 ```
 # Uninstall/Clean Up DB Object
