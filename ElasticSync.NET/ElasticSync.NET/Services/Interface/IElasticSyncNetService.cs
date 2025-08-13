@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ElasticSync.NET.Services
+namespace ElasticSync.NET.Services.Interface
 {
     public interface IElasticSyncNetService
     {

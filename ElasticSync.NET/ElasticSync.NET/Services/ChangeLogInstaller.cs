@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Diagnostics;
-using System.Threading;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 
 public class ChangeLogInstaller
 {
     private readonly ChangeSyncOptions _options;
+    private readonly string namingPrefix = "elastic_sync_";
 
     public ChangeLogInstaller(ChangeSyncOptions options)
     {
@@ -44,7 +44,6 @@ public class ChangeLogInstaller
     private string BuildInstallScript(NpgsqlConnection conn)
     {
         var sb = new StringBuilder();
-        var namingPrefix = "elastic_sync_";
 
         // Drop old table
         sb.AppendLine($@"
@@ -77,6 +76,8 @@ public class ChangeLogInstaller
                 dead_letter BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT now()
             );");
+
+        sb.AppendLine(CreateIndexIfNotExist());
 
         sb.AppendLine($@"
             CREATE OR REPLACE FUNCTION {namingPrefix}log_change() 
@@ -151,9 +152,87 @@ public class ChangeLogInstaller
         //Console.WriteLine(sb.ToString());
         return sb.ToString();
     }
+    private string CreateIndexIfNotExist()
+    {
+        var query = $@"
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = '{namingPrefix}change_log' 
+                      AND indexname = '{namingPrefix}change_log_retry_count_idx'
+                ) THEN
+                    EXECUTE format(
+                        'CREATE INDEX %I ON %I (retry_count)',
+                        '{namingPrefix}change_log_retry_count_idx',
+                        '{namingPrefix}change_log'
+                    );
+                END IF;
 
-    string QuoteIfNeeded(string name) => name.Any(char.IsUpper) ? $"\"{name}\"" : name;
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = '{namingPrefix}change_log' 
+                      AND indexname = '{namingPrefix}change_log_processed_idx'
+                ) THEN
+                    EXECUTE format(
+                        'CREATE INDEX %I ON %I (processed)',
+                        '{namingPrefix}change_log_processed_idx',
+                        '{namingPrefix}change_log'
+                    );
+                END IF;
 
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = '{namingPrefix}change_log' 
+                      AND indexname = '{namingPrefix}change_log_record_id_idx'
+                ) THEN
+                    EXECUTE format(
+                        'CREATE INDEX %I ON %I (record_id)',
+                        '{namingPrefix}change_log_record_id_idx',
+                        '{namingPrefix}change_log'
+                    );
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = '{namingPrefix}change_log' 
+                      AND indexname = '{namingPrefix}change_log_operation_idx'
+                ) THEN
+                    EXECUTE format(
+                        'CREATE INDEX %I ON %I (operation)',
+                        '{namingPrefix}change_log_operation_idx',
+                        '{namingPrefix}change_log'
+                    );
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = '{namingPrefix}change_log' 
+                      AND indexname = '{namingPrefix}change_log_dead_letter_idx'
+                ) THEN
+                    EXECUTE format(
+                        'CREATE INDEX %I ON %I (dead_letter)',
+                        '{namingPrefix}change_log_dead_letter_idx',
+                        '{namingPrefix}change_log'
+                    );
+                END IF;
+
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = '{namingPrefix}change_log' 
+                      AND indexname = '{namingPrefix}change_log_created_at_idx'
+                ) THEN
+                    EXECUTE format(
+                        'CREATE INDEX %I ON %I (created_at)',
+                        '{namingPrefix}change_log_created_at_idx',
+                        '{namingPrefix}change_log'
+                    );
+                END IF;
+            END
+            $$;                
+            ";
+        return query;
+    }
     string GetPrimaryKeyName(NpgsqlConnection conn, string table)
     {
         using var cmd = new NpgsqlCommand(@"
@@ -169,4 +248,7 @@ public class ChangeLogInstaller
         cmd.Parameters.AddWithValue("table", table);
         return (string?)cmd.ExecuteScalar() ?? "id";
     }
+    string QuoteIfNeeded(string name) => name.Any(char.IsUpper) ? $"\"{name}\"" : name;
+
+    
 }

@@ -1,6 +1,7 @@
 using ChangeSync.Elastic.Postgres.Models;
 using ChangeSync.Elastic.Postgres.Services;
 using ElasticSync.NET.Services;
+using ElasticSync.NET.Services.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 using System;

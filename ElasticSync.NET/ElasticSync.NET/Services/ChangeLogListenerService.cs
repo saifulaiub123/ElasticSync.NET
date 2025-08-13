@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-using ElasticSync.NET.Services;
+using ElasticSync.NET.Services.Interface;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 

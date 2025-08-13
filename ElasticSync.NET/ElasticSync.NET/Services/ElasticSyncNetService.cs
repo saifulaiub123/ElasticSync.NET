@@ -1,4 +1,5 @@
 ﻿using ChangeSync.Elastic.Postgres.Models;
+using ElasticSync.NET.Services.Interface;
 using Nest;
 using Npgsql;
 using System;
