@@ -24,11 +24,12 @@ BEGIN
         FROM information_schema.routines
         WHERE routine_name LIKE 'elastic_sync_%'
     LOOP
-        EXECUTE format('DROP FUNCTION IF EXISTS %I.%I(text) CASCADE;', func.routine_schema, func.routine_name);
+        EXECUTE format('DROP FUNCTION IF EXISTS %I.%I CASCADE;', func.routine_schema, func.routine_name);
         -- Adjust arguments list if your functions have different signatures
     END LOOP;
 END;
 $$;
 
 -- Drop change_log table if it uses your prefix, otherwise:
-DROP TABLE IF EXISTS elastic_sync_change_log CASCADE;
+DROP TABLE IF EXISTS esnet.elastic_sync_change_log CASCADE;
+DROP SCHEMA IF EXISTS esnet CASCADE;

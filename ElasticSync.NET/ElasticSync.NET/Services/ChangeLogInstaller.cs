@@ -64,7 +64,18 @@ public class ChangeLogInstaller
         ");
 
         sb.AppendLine($@"
-            CREATE TABLE IF NOT EXISTS {namingPrefix}change_log (
+            DO $$
+                DECLARE
+                    namingPrefix TEXT := 'elastic_sync_';
+                    schemaName TEXT := 'esnet';
+                    tableName TEXT := namingPrefix || 'change_log';
+                BEGIN
+                    EXECUTE format('CREATE SCHEMA IF NOT EXISTS %I', schemaName);
+                END$$;
+        ");
+
+        sb.AppendLine($@"
+            CREATE TABLE IF NOT EXISTS esnet.{namingPrefix}change_log (
                 id SERIAL PRIMARY KEY,
                 table_name TEXT NOT NULL,
                 operation TEXT NOT NULL,
@@ -92,7 +103,7 @@ public class ChangeLogInstaller
                 USING COALESCE(NEW, OLD)
                 INTO rec_id;
 
-                INSERT INTO {namingPrefix}change_log (table_name, operation, record_id, payload)
+                INSERT INTO esnet.{namingPrefix}change_log (table_name, operation, record_id, payload)
                 VALUES (
                     TG_TABLE_NAME,
                     TG_OP,
@@ -149,87 +160,99 @@ public class ChangeLogInstaller
                 $$;");   
             }
         }
-        //Console.WriteLine(sb.ToString());
+        Console.WriteLine(sb.ToString());
         return sb.ToString();
     }
     private string CreateIndexIfNotExist()
     {
         var query = $@"
             DO $$
-            BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = '{namingPrefix}change_log' 
-                      AND indexname = '{namingPrefix}change_log_retry_count_idx'
-                ) THEN
-                    EXECUTE format(
-                        'CREATE INDEX %I ON %I (retry_count)',
-                        '{namingPrefix}change_log_retry_count_idx',
-                        '{namingPrefix}change_log'
-                    );
-                END IF;
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'esnet'
+                            AND tablename = 'elastic_sync_change_log'
+                            AND indexname = 'elastic_sync_change_log_processed_idx'
+                    ) THEN
+                        EXECUTE format(
+                            'CREATE INDEX %I ON %I.%I (processed)',
+                            'elastic_sync_change_log_processed_idx',
+                            'esnet',
+                            'elastic_sync_change_log'
+                        );
+                    END IF;
 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = '{namingPrefix}change_log' 
-                      AND indexname = '{namingPrefix}change_log_processed_idx'
-                ) THEN
-                    EXECUTE format(
-                        'CREATE INDEX %I ON %I (processed)',
-                        '{namingPrefix}change_log_processed_idx',
-                        '{namingPrefix}change_log'
-                    );
-                END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'esnet'
+                            AND tablename = 'elastic_sync_change_log'
+                            AND indexname = 'elastic_sync_change_log_record_id_idx'
+                    ) THEN
+                        EXECUTE format(
+                            'CREATE INDEX %I ON %I.%I (record_id)',
+                            'elastic_sync_change_log_record_id_idx',
+                            'esnet',
+                            'elastic_sync_change_log'
+                        );
+                    END IF;
 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = '{namingPrefix}change_log' 
-                      AND indexname = '{namingPrefix}change_log_record_id_idx'
-                ) THEN
-                    EXECUTE format(
-                        'CREATE INDEX %I ON %I (record_id)',
-                        '{namingPrefix}change_log_record_id_idx',
-                        '{namingPrefix}change_log'
-                    );
-                END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'esnet'
+                            AND tablename = 'elastic_sync_change_log'
+                            AND indexname = 'elastic_sync_change_log_operation_idx'
+                    ) THEN
+                        EXECUTE format(
+                            'CREATE INDEX %I ON %I.%I (operation)',
+                            'elastic_sync_change_log_operation_idx',
+                            'esnet',
+                            'elastic_sync_change_log'
+                        );
+                    END IF;
 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = '{namingPrefix}change_log' 
-                      AND indexname = '{namingPrefix}change_log_operation_idx'
-                ) THEN
-                    EXECUTE format(
-                        'CREATE INDEX %I ON %I (operation)',
-                        '{namingPrefix}change_log_operation_idx',
-                        '{namingPrefix}change_log'
-                    );
-                END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'esnet'
+                            AND tablename = 'elastic_sync_change_log'
+                            AND indexname = 'elastic_sync_change_log_dead_letter_idx'
+                    ) THEN
+                        EXECUTE format(
+                            'CREATE INDEX %I ON %I.%I (dead_letter)',
+                            'elastic_sync_change_log_dead_letter_idx',
+                            'esnet',
+                            'elastic_sync_change_log'
+                        );
+                    END IF;
 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = '{namingPrefix}change_log' 
-                      AND indexname = '{namingPrefix}change_log_dead_letter_idx'
-                ) THEN
-                    EXECUTE format(
-                        'CREATE INDEX %I ON %I (dead_letter)',
-                        '{namingPrefix}change_log_dead_letter_idx',
-                        '{namingPrefix}change_log'
-                    );
-                END IF;
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'esnet'
+                            AND tablename = 'elastic_sync_change_log'
+                            AND indexname = 'elastic_sync_change_log_created_at_idx'
+                    ) THEN
+                        EXECUTE format(
+                            'CREATE INDEX %I ON %I.%I (created_at)',
+                            'elastic_sync_change_log_created_at_idx',
+                            'esnet',
+                            'elastic_sync_change_log'
+                        );
+                    END IF;
 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = '{namingPrefix}change_log' 
-                      AND indexname = '{namingPrefix}change_log_created_at_idx'
-                ) THEN
-                    EXECUTE format(
-                        'CREATE INDEX %I ON %I (created_at)',
-                        '{namingPrefix}change_log_created_at_idx',
-                        '{namingPrefix}change_log'
-                    );
-                END IF;
-            END
-            $$;                
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'esnet'
+                            AND tablename = 'elastic_sync_change_log'
+                            AND indexname = 'elastic_sync_change_log_processed_dead_idx'
+                    ) THEN
+                        EXECUTE format(
+                            'CREATE INDEX %I ON %I.%I (processed, dead_letter, id)',
+                            'elastic_sync_change_log_processed_dead_idx',
+                            'esnet',
+                            'elastic_sync_change_log'
+                        );
+                    END IF;
+                END
+                $$;
             ";
         return query;
     }

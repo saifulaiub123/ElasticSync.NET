@@ -31,7 +31,7 @@ namespace ElasticSync.NET.Services
 
             await using var cmd = new NpgsqlCommand($@"
             SELECT id, table_name, operation, record_id, payload, retry_count
-            FROM {_namingPrefix}change_log
+            FROM esnet.{_namingPrefix}change_log
             WHERE processed = FALSE AND dead_letter = FALSE
             ORDER BY id
             LIMIT {_options.BatchSize}", conn);
@@ -59,7 +59,7 @@ namespace ElasticSync.NET.Services
             await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
             await conn.OpenAsync();
 
-            await using var cmd = new NpgsqlCommand($"UPDATE {_namingPrefix}change_log SET processed = TRUE WHERE id = ANY(@ids)", conn);
+            await using var cmd = new NpgsqlCommand($"UPDATE esnet.{_namingPrefix}change_log SET processed = TRUE WHERE id = ANY(@ids)", conn);
             cmd.Parameters.AddWithValue("ids", successIds.ToArray());
             await cmd.ExecuteNonQueryAsync();
         }
@@ -136,7 +136,7 @@ namespace ElasticSync.NET.Services
             foreach (var (logId, error) in failures)
             {
                 var cmd = new NpgsqlCommand($@"
-                UPDATE {_namingPrefix}change_log
+                UPDATE esnet.{_namingPrefix}change_log
                 SET retry_count = retry_count + 1,
                     last_error = @error,
                     dead_letter = retry_count + 1 >= @maxRetries
