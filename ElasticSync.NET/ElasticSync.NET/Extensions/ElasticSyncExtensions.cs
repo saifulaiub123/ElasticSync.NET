@@ -28,7 +28,7 @@ public static class ElasticSyncExtensions
             services.AddSingleton<ChangeLogInstaller>();
             services.AddSingleton<ElasticIndexProvisioner>();
             services.AddSingleton<IElasticSyncNetService, ElasticSyncNetService>();
-            services.AddHostedService<ChangeLogListenerService>();
+            services.AddHostedService<SyncListenerService>();
 
             Task.Run(async () =>
             {

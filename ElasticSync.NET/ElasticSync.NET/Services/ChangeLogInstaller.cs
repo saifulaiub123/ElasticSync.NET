@@ -85,6 +85,10 @@ public class ChangeLogInstaller
                 retry_count INT DEFAULT 0,
                 last_error TEXT,
                 dead_letter BOOLEAN DEFAULT FALSE,
+                locked_by TEXT,
+                locked_at TIMESTAMP,
+                next_retry_at TIMESTAMP,
+                last_attempt_at TIMESTAMP;
                 created_at TIMESTAMP DEFAULT now()
             );");
 
@@ -251,6 +255,8 @@ public class ChangeLogInstaller
                             'elastic_sync_change_log'
                         );
                     END IF;
+
+                    CREATE INDEX IF NOT EXISTS elastic_sync_change_log_unprocessed_idx ON esnet.elastic_sync_change_log(processed, dead_letter, next_retry_at, created_at);
                 END
                 $$;
             ";

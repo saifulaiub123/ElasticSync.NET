@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ElasticSync.NET.Services
@@ -22,7 +23,7 @@ namespace ElasticSync.NET.Services
             _options = options;
         }
 
-        public virtual async Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync()
+        public virtual async Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync(int batchSize, CancellationToken cancellationToken)
         {
             var logs = new List<ChangeLogEntry>(_options.BatchSize);
 
@@ -52,7 +53,7 @@ namespace ElasticSync.NET.Services
             return logs;
         }
 
-        public virtual async Task MarkLogsAsProcessed(List<int> successIds)
+        public virtual async Task MarkLogsAsProcessed(List<int> successIds, CancellationToken cancellationToken)
         {
             if (!successIds.Any()) return;
 
@@ -64,13 +65,13 @@ namespace ElasticSync.NET.Services
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public virtual async Task ProcessChangeLogsAsync()
+        public virtual async Task ProcessChangeLogsAsync(string worderId, int batchSize, CancellationToken cancellationToken)
         {
-            var logs = new List<ChangeLogEntry>(_options.BatchSize);
+            var logs = new List<ChangeLogEntry>(batchSize);
 
             while (true) 
             {
-                logs = await FetchUnprocessedLogsAsync();
+                logs = await FetchUnprocessedLogsAsync(batchSize, cancellationToken);
                 if (!logs.Any()) break;
 
 
@@ -121,12 +122,12 @@ namespace ElasticSync.NET.Services
                     else
                         failures.Add((logId, item.Error?.Reason ?? "Unknown error"));
                 }
-                await MarkLogsAsProcessed(successIds);
-                await HandleFailedLogs(failures);
+                await MarkLogsAsProcessed(successIds, cancellationToken);
+                await HandleFailedLogs(failures, cancellationToken);
             }
         }
 
-        private async Task HandleFailedLogs(List<(int logId, string error)> failures)
+        private async Task HandleFailedLogs(List<(int logId, string error)> failures, CancellationToken cancellationToken)
         {
             if (!failures.Any()) return;
 
