@@ -23,55 +23,13 @@ namespace ElasticSync.NET.Services
             _options = options;
         }
 
-        public virtual async Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync(int batchSize, CancellationToken cancellationToken)
-        {
-            var logs = new List<ChangeLogEntry>(_options.BatchSize);
-
-            await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
-            await conn.OpenAsync();
-
-            await using var cmd = new NpgsqlCommand($@"
-            SELECT id, table_name, operation, record_id, payload, retry_count
-            FROM esnet.{_namingPrefix}change_log
-            WHERE processed = FALSE AND dead_letter = FALSE
-            ORDER BY id
-            LIMIT {_options.BatchSize}", conn);
-
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                logs.Add(new ChangeLogEntry
-                {
-                    Id = reader.GetInt32(0),
-                    TableName = reader.GetString(1),
-                    Operation = reader.GetString(2),
-                    RecordId = reader.GetString(3),
-                    Payload = reader.GetString(4),
-                    RetryCount = reader.GetInt32(5)
-                });
-            }
-            return logs;
-        }
-
-        public virtual async Task MarkLogsAsProcessed(List<int> successIds, CancellationToken cancellationToken)
-        {
-            if (!successIds.Any()) return;
-
-            await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
-            await conn.OpenAsync();
-
-            await using var cmd = new NpgsqlCommand($"UPDATE esnet.{_namingPrefix}change_log SET processed = TRUE WHERE id = ANY(@ids)", conn);
-            cmd.Parameters.AddWithValue("ids", successIds.ToArray());
-            await cmd.ExecuteNonQueryAsync();
-        }
-
-        public virtual async Task ProcessChangeLogsAsync(string worderId, int batchSize, CancellationToken cancellationToken)
+        public virtual async Task ProcessChangeLogsAsync(string workerId, int batchSize, CancellationToken cancellationToken)
         {
             var logs = new List<ChangeLogEntry>(batchSize);
 
-            while (true) 
+            while (true)
             {
-                logs = await FetchUnprocessedLogsAsync(batchSize, cancellationToken);
+                logs = await FetchUnprocessedLogsAsync(workerId, batchSize, cancellationToken);
                 if (!logs.Any()) break;
 
 
@@ -127,6 +85,104 @@ namespace ElasticSync.NET.Services
             }
         }
 
+        public virtual async Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync(string workerId, int batchSize, CancellationToken cancellationToken)
+        {
+            var logs = new List<ChangeLogEntry>(batchSize);
+
+            await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+            await conn.OpenAsync();
+
+            //await using var cmd = new NpgsqlCommand($@"
+            //SELECT id, table_name, operation, record_id, payload, retry_count
+            //FROM esnet.{_namingPrefix}change_log
+            //WHERE processed = FALSE AND dead_letter = FALSE
+            //ORDER BY id
+            //LIMIT {_options.BatchSize}", conn);
+
+            string sql;
+
+            if (_options.EnableParallelProcessing)
+            {
+                //If parallel processing is enabled, we lock the rows to prevent other workers from processing them
+                sql = string.Format(@"
+                WITH cte AS (
+                    SELECT id
+                    FROM esnet.{0}change_log
+                    WHERE processed = FALSE
+                        AND dead_letter = FALSE
+                        AND (next_retry_at IS NULL OR next_retry_at <= now())
+                        AND locked_by IS NULL
+                    ORDER BY id
+                    LIMIT {1}
+                    FOR UPDATE SKIP LOCKED
+                )
+                UPDATE esnet.{2}change_log cl
+                SET locked_by = {3},
+                    locked_at = now()
+                FROM cte
+                WHERE cl.id = cte.id
+                RETURNING cl.id, cl.table_name, cl.operation, cl.record_id, cl.payload, cl.retry_count;",_namingPrefix, batchSize, _namingPrefix, workerId);
+            }
+            else
+            {
+                // If parallel processing is not enabled, we simply fetch the logs without locking
+                sql = string.Format(@"
+                WITH cte AS (
+                    SELECT id, table_name, operation, record_id, payload, retry_count
+                    FROM esnet.{0}change_log
+                    WHERE processed = FALSE
+                        AND dead_letter = FALSE
+                        AND (next_retry_at IS NULL OR next_retry_at <= now())
+                    ORDER BY id
+                    LIMIT {1}
+                )
+                SELECT id, table_name, operation, record_id, payload, retry_count
+                FROM cte;",_namingPrefix, batchSize);
+            }
+
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = sql;
+            await cmd.ExecuteNonQueryAsync();
+
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                logs.Add(new ChangeLogEntry
+                {
+                    Id = reader.GetInt32(0),
+                    TableName = reader.GetString(1),
+                    Operation = reader.GetString(2),
+                    RecordId = reader.GetString(3),
+                    Payload = reader.GetString(4),
+                    RetryCount = reader.GetInt32(5)
+                });
+            }
+            return logs;
+        }
+
+        public virtual async Task MarkLogsAsProcessed(List<int> successIds, CancellationToken cancellationToken)
+        {
+            if (!successIds.Any()) return;
+
+            await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+            await conn.OpenAsync();
+
+            await using var cmd = new NpgsqlCommand($@"
+                UPDATE esnet.{_namingPrefix}change_log 
+                SET processed = TRUE,
+                    last_attempt_at = now(),
+                    locked_by = NULL,
+                    locked_at = NULL,
+                    next_retry_at = NULL
+                WHERE id = ANY(@ids)", conn);
+
+            cmd.Parameters.AddWithValue("ids", successIds.ToArray());
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        
+
         private async Task HandleFailedLogs(List<(int logId, string error)> failures, CancellationToken cancellationToken)
         {
             if (!failures.Any()) return;
@@ -136,16 +192,19 @@ namespace ElasticSync.NET.Services
 
             foreach (var (logId, error) in failures)
             {
-                var cmd = new NpgsqlCommand($@"
+                var cmd = new NpgsqlCommand(@"
                 UPDATE esnet.{_namingPrefix}change_log
                 SET retry_count = retry_count + 1,
+                    last_attempt_at = now(),   
                     last_error = @error,
-                    dead_letter = retry_count + 1 >= @maxRetries
+                    dead_letter = retry_count + 1 >= @maxRetries,
+                    next_retry_at = now() + interval '@retryDelayInSeconds second' END
                 WHERE id = @id", conn);
 
                 cmd.Parameters.AddWithValue("error", error);
-                cmd.Parameters.AddWithValue("id", logId);
                 cmd.Parameters.AddWithValue("maxRetries", _options.MaxRetries);
+                cmd.Parameters.AddWithValue("retryDelayInSeconds", _options.RetryDelayInSeconds);
+                cmd.Parameters.AddWithValue("id", logId);
 
                 await cmd.ExecuteNonQueryAsync();
             }

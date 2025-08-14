@@ -88,7 +88,7 @@ public class ChangeLogInstaller
                 locked_by TEXT,
                 locked_at TIMESTAMP,
                 next_retry_at TIMESTAMP,
-                last_attempt_at TIMESTAMP;
+                last_attempt_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT now()
             );");
 

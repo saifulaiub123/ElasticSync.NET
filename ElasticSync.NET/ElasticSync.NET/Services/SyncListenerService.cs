@@ -44,7 +44,7 @@ public class SyncListenerService : BackgroundService
                 var workers = Enumerable.Range(0, _options.WorkerOptions.NumberOfWorkers)
                 .Select(i => 
                     Task.Run(() => 
-                        WorkerLoopParallelAsync(string.Format("{0}_{1}", _options.WorkerOptions.WorkerId, i), _options.WorkerOptions.BatchSizePerWorker,ct), ct)
+                        WorkerLoopParallelAsync(string.Format("worker_{1}", i + 1), _options.WorkerOptions.BatchSizePerWorker,ct), ct)
                     )
                 .ToList();
 
@@ -165,7 +165,7 @@ public class SyncListenerService : BackgroundService
             await conn.WaitAsync(ct);
             Console.WriteLine($"{Count++} -- Change detected, processing change logs...");
 
-            await _elasticSyncNetService.ProcessChangeLogsAsync("0", _options.BatchSize, ct);
+            await _elasticSyncNetService.ProcessChangeLogsAsync(null, _options.BatchSize, ct);
         }
     } 
 }
