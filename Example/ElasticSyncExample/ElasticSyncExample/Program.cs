@@ -25,7 +25,7 @@ builder.Services.AddElasticSyncEngine(options =>
     options.RealTimeSync();
     //options.IntervalSync(intervalInSeconds: 20, batchSize : 500);
     options.MaxRetries = 5;
-    options.RetryDelayInSeconds = 20;
+    options.RetryDelayInSeconds = 20; 
     options.EnableMultipleWorkers(new WorkerOptions
     {
         BatchSizePerWorker = 300,
