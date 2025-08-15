@@ -1,4 +1,4 @@
-﻿using ChangeSync.Elastic.Postgres.Models;
+﻿using ElasticSync.Models;
 using ElasticSync.NET.Services.Interface;
 using Nest;
 using Npgsql;
@@ -14,10 +14,10 @@ namespace ElasticSync.NET.Services
     public class ElasticSyncNetService : IElasticSyncNetService
     {
         private readonly ElasticClient _elastic;
-        private readonly ChangeSyncOptions _options;
+        private readonly ElasticSyncOptions _options;
         private readonly string _namingPrefix = "elastic_sync_";
 
-        public ElasticSyncNetService(ElasticClient elastic, ChangeSyncOptions options)
+        public ElasticSyncNetService(ElasticClient elastic, ElasticSyncOptions options)
         {
             _elastic = elastic;
             _options = options;
@@ -149,7 +149,7 @@ namespace ElasticSync.NET.Services
                     FROM cte;", _namingPrefix, batchSize);
                 }
 
-                await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+                await using var conn = new NpgsqlConnection(_options.ConnectionString);
                 await conn.OpenAsync();
                 await using var cmd = conn.CreateCommand();
                 cmd.CommandText = sql;
@@ -181,7 +181,7 @@ namespace ElasticSync.NET.Services
             {
                 if (!successIds.Any()) return;
 
-                await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+                await using var conn = new NpgsqlConnection(_options.ConnectionString);
                 await conn.OpenAsync();
 
                 await using var cmd = new NpgsqlCommand($@"
@@ -208,7 +208,7 @@ namespace ElasticSync.NET.Services
 
             try
             {
-                await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+                await using var conn = new NpgsqlConnection(_options.ConnectionString);
                 await conn.OpenAsync();
 
                 foreach (var (logId, error) in failures)

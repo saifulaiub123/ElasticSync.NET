@@ -24,11 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ElasticSync.NET\ElasticSync.NET\ElasticSync.NET.csproj" />
+    <Folder Include="Scripts\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Scripts\" />
+    <ProjectReference Include="..\..\..\ElasticSync.NET\ElasticSync.NET\ElasticSync.NET.csproj" />
   </ItemGroup>
 
 </Project>

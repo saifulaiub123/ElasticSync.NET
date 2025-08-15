@@ -1,6 +1,6 @@
 using Npgsql;
 using Nest;
-using ChangeSync.Elastic.Postgres.Models;
+using ElasticSync.Models;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System.Threading;
@@ -9,18 +9,18 @@ using ElasticSync.NET.Services.Interface;
 using System.Threading.Channels;
 using System.Linq;
 
-namespace ChangeSync.Elastic.Postgres.Services;
+namespace ElasticSync.Services;
 
 public class SyncListenerService : BackgroundService
 {
-    private readonly ChangeSyncOptions _options;
+    private readonly ElasticSyncOptions _options;
     private readonly Channel<byte> _notifyChannel;
     private readonly IElasticSyncNetService _elasticSyncNetService;
 
     private readonly string _namingPrefix = "elastic_sync_";
     private int Count { get; set; } = 0;
 
-    public SyncListenerService(ChangeSyncOptions options, IElasticSyncNetService elasticSyncNetService)
+    public SyncListenerService(ElasticSyncOptions options, IElasticSyncNetService elasticSyncNetService)
     {
         _options = options;
         _elasticSyncNetService = elasticSyncNetService;
@@ -53,16 +53,6 @@ public class SyncListenerService : BackgroundService
             {
                 var intervalFallbackListner = Task.Run(() => IntervalFallbackListener(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { intervalFallbackListner }));
-                
-                //while (!ct.IsCancellationRequested)
-                //{
-                //    await Task.Delay(TimeSpan.FromSeconds(_options.IntervalInSeconds), ct);
-
-                //    if (_notifyChannel.Reader.Count == 0)
-                //    {
-                //        await _notifyChannel.Writer.WriteAsync(1, ct);
-                //    }
-                //}
             }
         }
         catch (Exception ex)
@@ -73,7 +63,7 @@ public class SyncListenerService : BackgroundService
     private async Task WorkerLoopParallelAsync(string workerId, int batchSize, CancellationToken ct)
     {
         // each worker has its own DB connection
-        await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+        await using var conn = new NpgsqlConnection(_options.ConnectionString);
         await conn.OpenAsync(ct);
 
         while (!ct.IsCancellationRequested)
@@ -99,7 +89,7 @@ public class SyncListenerService : BackgroundService
 
     private async Task ListenToPgNotifyParallelAsync(CancellationToken ct)
     {
-        await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+        await using var conn = new NpgsqlConnection(_options.ConnectionString);
         await conn.OpenAsync(ct);
 
         conn.Notification += (o, e) =>
@@ -146,28 +136,4 @@ public class SyncListenerService : BackgroundService
             await _notifyChannel.Writer.WriteAsync(1, ct);
         }
     }
-
-    
-    private async Task ListenToPgNotifyAsync(CancellationToken ct)
-    {
-        await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
-        await conn.OpenAsync(ct);
-
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = $"LISTEN {_namingPrefix}change_log_channel;";
-        await cmd.ExecuteNonQueryAsync();
-
-        while (!ct.IsCancellationRequested)
-        {
-            await conn.WaitAsync(ct);
-            Console.WriteLine($"{Count++} -- Change detected, processing change logs...");
-
-            var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(null, _options.BatchSize, ct);
-            if (!hasWork)
-            {
-                // No more logs to process, break out of the inner loop
-                break;
-            }
-        }
-    } 
 }

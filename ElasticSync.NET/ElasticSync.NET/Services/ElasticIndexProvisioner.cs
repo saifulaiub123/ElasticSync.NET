@@ -1,16 +1,16 @@
 using Nest;
-using ChangeSync.Elastic.Postgres.Models;
+using ElasticSync.Models;
 using System.Threading.Tasks;
 using System;
 
-namespace ChangeSync.Elastic.Postgres.Services;
+namespace ElasticSync.Services;
 
 public class ElasticIndexProvisioner
 {
     private readonly ElasticClient _client;
-    private readonly ChangeSyncOptions _options;
+    private readonly ElasticSyncOptions _options;
 
-    public ElasticIndexProvisioner(ElasticClient client, ChangeSyncOptions options)
+    public ElasticIndexProvisioner(ElasticClient client, ElasticSyncOptions options)
     {
         _client = client;
         _options = options;

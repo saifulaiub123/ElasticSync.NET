@@ -1,19 +1,19 @@
 using Npgsql;
 using System.Text;
-using ChangeSync.Elastic.Postgres.Models;
+using ElasticSync.Models;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Diagnostics;
 
-namespace ChangeSync.Elastic.Postgres.Services;
+namespace ElasticSync.Services;
 
 public class ChangeLogInstaller
 {
-    private readonly ChangeSyncOptions _options;
+    private readonly ElasticSyncOptions _options;
     private readonly string namingPrefix = "elastic_sync_";
 
-    public ChangeLogInstaller(ChangeSyncOptions options)
+    public ChangeLogInstaller(ElasticSyncOptions options)
     {
         _options = options;
     }
@@ -25,7 +25,7 @@ public class ChangeLogInstaller
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
-            await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
+            await using var conn = new NpgsqlConnection(_options.ConnectionString);
             await conn.OpenAsync();
 
             await using var cmd = conn.CreateCommand();

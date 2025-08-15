@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace ChangeSync.Elastic.Postgres.Models;
+namespace ElasticSync.Models;
 
-public class ChangeSyncOptions
+public class ElasticSyncOptions
 {
-    public string PostgresConnectionString { get; set; } = default!;
+    public DatabaseProvider DatabaseProvider { get; set; } = DatabaseProvider.PostgreSQL;
+    internal string ConnectionString { get; set; } = default!;
     public string ElasticsearchUrl { get; set; } = default!;
     public int MaxRetries { get; set; } = 5;
     public int RetryDelayInSeconds { get; set; } = 5; //base for exponential backoff
@@ -16,7 +17,14 @@ public class ChangeSyncOptions
     public List<TrackedEntity> Entities { get; set; } = new();
     public WorkerOptions WorkerOptions { get; set; } = new WorkerOptions();
 
+    public void UsePostgreSql(string connectionString)
+    {
+        DatabaseProvider = DatabaseProvider.PostgreSQL;
+        ConnectionString = connectionString;
+    }
+
 }
+
 public class WorkerOptions
 {
     public int BatchSizePerWorker { get; set; } = 250;
@@ -37,4 +45,12 @@ public enum ElasticSyncMode
 {
     Realtime,
     Interval
+}
+
+public enum DatabaseProvider
+{
+    PostgreSQL,
+    SqlServer,
+    MySql,
+    Sqlite
 }

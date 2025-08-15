@@ -1,5 +1,5 @@
-using ChangeSync.Elastic.Postgres.Extensions;
-using ChangeSync.Elastic.Postgres.Models;
+using ElasticSync.Extensions;
+using ElasticSync.Models;
 using ElasticSyncExample;
 using ElasticSyncExample.Models;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddElasticSyncEngine(options =>
 {
-    options.PostgresConnectionString = builder.Configuration.GetConnectionString("DbConnectionString");
+    options.UsePostgreSql(builder.Configuration.GetConnectionString("DbConnectionString"));
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
     options.Mode = ElasticSyncMode.Interval;
     options.IntervalInSeconds = 20;

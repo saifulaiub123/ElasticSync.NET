@@ -1,5 +1,5 @@
-using ChangeSync.Elastic.Postgres.Models;
-using ChangeSync.Elastic.Postgres.Services;
+using ElasticSync.Models;
+using ElasticSync.Services;
 using ElasticSync.NET.Services;
 using ElasticSync.NET.Services.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,15 +7,15 @@ using Nest;
 using System;
 using System.Threading.Tasks;
 
-namespace ChangeSync.Elastic.Postgres.Extensions;
+namespace ElasticSync.Extensions;
 
 public static class ElasticSyncExtensions
 {
-    public static IServiceCollection AddElasticSyncEngine(this IServiceCollection services, Action<ChangeSyncOptions> configure)
+    public static IServiceCollection AddElasticSyncEngine(this IServiceCollection services, Action<ElasticSyncOptions> configure)
     {
 		try
 		{
-            var options = new ChangeSyncOptions();
+            var options = new ElasticSyncOptions();
             configure(options);
 
             services.AddSingleton(options);

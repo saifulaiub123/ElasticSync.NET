@@ -1,6 +1,6 @@
 using System;
 
-namespace ChangeSync.Elastic.Postgres.Models;
+namespace ElasticSync.Models;
 
 public class ChangeLogEntry
 {
