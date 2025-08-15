@@ -44,12 +44,12 @@ public class SyncListenerService : BackgroundService
                     )
                 .ToList();
 
-            if (_options.Mode == ElasticSyncMode.Realtime)
+            if (_options.Mode == SyncMode.RealTime)
             {
                 var listenerTask = Task.Run(() => ListenToPgNotifyParallelAsync(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { listenerTask })); 
             }
-            else if (_options.Mode == ElasticSyncMode.Interval)
+            else if (_options.Mode == SyncMode.Interval)
             {
                 var intervalFallbackListner = Task.Run(() => IntervalFallbackListener(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { intervalFallbackListner }));
