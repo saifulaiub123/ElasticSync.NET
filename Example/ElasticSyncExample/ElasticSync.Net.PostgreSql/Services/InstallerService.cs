@@ -5,15 +5,16 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Diagnostics;
+using ElasticSync.NET.Interface;
 
 namespace ElasticSync.Services;
 
-public class ChangeLogInstaller
+public class InstallerService : IInstallerService
 {
     private readonly ElasticSyncOptions _options;
     private readonly string namingPrefix = "elastic_sync_";
 
-    public ChangeLogInstaller(ElasticSyncOptions options)
+    public InstallerService(ElasticSyncOptions options)
     {
         _options = options;
     }

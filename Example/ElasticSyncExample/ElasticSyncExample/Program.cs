@@ -1,6 +1,7 @@
 using ElasticSync.Extensions;
 using ElasticSync.Models;
 using ElasticSync.Net.PostgreSql.Services;
+using ElasticSync.Services;
 using ElasticSyncExample;
 using ElasticSyncExample.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString")));
 
-builder.Services.AddElasticSyncEngine<PostgreeChangeLogService>(options =>
+builder.Services.AddElasticSyncEngine(options =>
 {
     options.UsePostgreSql(builder.Configuration.GetConnectionString("DbConnectionString"));
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
-    options.Mode = ElasticSyncMode.Interval;
+    options.Mode = ElasticSyncMode.Realtime;
     options.IntervalInSeconds = 20;
     options.BatchSize = 500;
     options.MaxRetries = 5;
@@ -37,7 +38,12 @@ builder.Services.AddElasticSyncEngine<PostgreeChangeLogService>(options =>
         //new TrackedEntity { Table = "Employees", EntityType = typeof(Employee), PrimaryKey = "Id", IndexName = "employees" },
         //new TrackedEntity { Table = "Departments", EntityType = typeof(Department), PrimaryKey = "Id", IndexName = "departments" },
         //new TrackedEntity { Table = "Addresses", EntityType = typeof(Address), PrimaryKey = "Id", IndexName = "addresses" },
-    };
+    }; 
+},
+providers => 
+{
+    providers.ChangeLogServiceType = typeof(PostgreeChangeLogService);
+    providers.ChangeLogInstallerServiceType = typeof(InstallerService);
 });
 
 var app = builder.Build();
