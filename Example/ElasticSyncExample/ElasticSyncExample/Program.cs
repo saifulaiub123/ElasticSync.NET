@@ -22,15 +22,20 @@ builder.Services.AddElasticSyncEngine(options =>
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
     options.Mode = ElasticSyncMode.Realtime;
     options.PollIntervalSeconds = 20;
+    options.BatchSize = 20;
+    options.MaxRetries = 5;
+    options.RetryDelayInSeconds = 2;
+    options.EnableParallelProcessing = true;
+    options.WorkerOptions.NumberOfWorkers = 4;
     options.Entities = new List<TrackedEntity>
     {
         new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
-        new TrackedEntity { Table = "Orders", EntityType = typeof(Order), PrimaryKey = "Id", IndexName = "orders" },
-        new TrackedEntity { Table = "OrderItems", EntityType = typeof(OrderItem), PrimaryKey = "Id", IndexName = "orderitems" },
-        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
-        new TrackedEntity { Table = "Employees", EntityType = typeof(Employee), PrimaryKey = "Id", IndexName = "employees" },
-        new TrackedEntity { Table = "Departments", EntityType = typeof(Department), PrimaryKey = "Id", IndexName = "departments" },
-        new TrackedEntity { Table = "Addresses", EntityType = typeof(Address), PrimaryKey = "Id", IndexName = "addresses" },
+        //new TrackedEntity { Table = "Orders", EntityType = typeof(Order), PrimaryKey = "Id", IndexName = "orders" },
+        //new TrackedEntity { Table = "OrderItems", EntityType = typeof(OrderItem), PrimaryKey = "Id", IndexName = "orderitems" },
+        //new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
+        //new TrackedEntity { Table = "Employees", EntityType = typeof(Employee), PrimaryKey = "Id", IndexName = "employees" },
+        //new TrackedEntity { Table = "Departments", EntityType = typeof(Department), PrimaryKey = "Id", IndexName = "departments" },
+        //new TrackedEntity { Table = "Addresses", EntityType = typeof(Address), PrimaryKey = "Id", IndexName = "addresses" },
     };
 });
 

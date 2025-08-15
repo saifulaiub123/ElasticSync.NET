@@ -44,7 +44,7 @@ public class SyncListenerService : BackgroundService
                 var workers = Enumerable.Range(0, _options.WorkerOptions.NumberOfWorkers)
                 .Select(i => 
                     Task.Run(() => 
-                        WorkerLoopParallelAsync(string.Format("worker_{1}", i + 1), _options.WorkerOptions.BatchSizePerWorker,ct), ct)
+                        WorkerLoopParallelAsync(string.Format("worker_{0}", i + 1), _options.WorkerOptions.BatchSizePerWorker,ct), ct)
                     )
                 .ToList();
 
@@ -52,9 +52,9 @@ public class SyncListenerService : BackgroundService
                 var listenerTask = Task.Run(() => ListenToPgNotifyParallelAsync(ct), ct);
 
                 // Start periodic poll fallback to ensure nothing missed
-                var pollTask = Task.Run(() => PollFallbackLoopParallelAsync(ct), ct);
+                //var pollTask = Task.Run(() => PollFallbackLoopParallelAsync(ct), ct);
 
-                await Task.WhenAll(workers.Concat(new[] { listenerTask, pollTask }));
+                await Task.WhenAll(workers.Concat(new[] { listenerTask }));
             }
             else
             {
@@ -95,7 +95,12 @@ public class SyncListenerService : BackgroundService
             // Process until no more batches (to drain quickly)
             while (!cancellationToken.IsCancellationRequested)
             {
-                await _elasticSyncNetService.ProcessChangeLogsAsync(workerId, batchSize, cancellationToken);
+                var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(workerId, batchSize, cancellationToken);
+                if (!hasWork)
+                {
+                    // No more logs to process, break out of the inner loop
+                    break;
+                }
             }
         }
     }
@@ -105,10 +110,14 @@ public class SyncListenerService : BackgroundService
         await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
         await conn.OpenAsync(ct);
 
-        conn.Notification += async (o, e) =>
+        conn.Notification += (o, e) =>
         {
-            // Push a token; don't await to avoid blocking the notification callback
-            _ = _notifyChannel.Writer.WriteAsync(1);
+            for (int i = 0; i < _options.WorkerOptions.NumberOfWorkers; i++)
+            {
+                _ = _notifyChannel.Writer.WriteAsync(1);
+            }
+
+            Console.WriteLine($"[Listener] Notification received. Woke {_options.WorkerOptions.NumberOfWorkers} workers.");
         };
 
         await using var cmd = conn.CreateCommand();
@@ -148,9 +157,6 @@ public class SyncListenerService : BackgroundService
     }
 
     
-
-
-
     private async Task ListenToPgNotifyAsync(CancellationToken ct)
     {
         await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);

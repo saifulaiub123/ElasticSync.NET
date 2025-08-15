@@ -8,7 +8,7 @@ namespace ElasticSync.NET.Services.Interface
     public interface IElasticSyncNetService
     {
         Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync(string workerId, int batchSize, CancellationToken cancellationToken);
-        Task ProcessChangeLogsAsync(string worderId, int batchSize, CancellationToken cancellationToken);
+        Task<bool> ProcessChangeLogsAsync(string worderId, int batchSize, CancellationToken cancellationToken);
         //Task MarkLogsAsProcessed(List<int> successIds, CancellationToken cancellationToken);
     }
 }
