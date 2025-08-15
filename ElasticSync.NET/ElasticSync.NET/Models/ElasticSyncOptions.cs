@@ -10,9 +10,9 @@ public class ElasticSyncOptions
     public string ElasticsearchUrl { get; set; } = default!;
     public int MaxRetries { get; set; } = 5;
     public int RetryDelayInSeconds { get; set; } = 5; //base for exponential backoff
-    public int BatchSize { get; set; } = 500; //Number of logs to sync in one batch
-    public ElasticSyncMode Mode { get; set; } = ElasticSyncMode.Realtime;
-    public int IntervalInSeconds { get; set; } = 60;//Only applicable for Interval mode
+    public int BatchSize { get; private set; } = 500; //Number of logs to sync in one batch
+    public ElasticSyncMode Mode { get; private set; } = ElasticSyncMode.Realtime;
+    public int IntervalInSeconds { get; private set; } = 60; //Only applicable for Interval mode
     public bool EnableMultipleWorker { get; private set; } = false;
     public List<TrackedEntity> Entities { get; set; } = new();
     public WorkerOptions WorkerOptions { get; private set; } = new WorkerOptions();
@@ -26,6 +26,17 @@ public class ElasticSyncOptions
     {
         EnableMultipleWorker = true;
         WorkerOptions = options ?? new WorkerOptions();
+    }
+    public void RealTimeSync(int batchSize = 500)
+    {
+        Mode = ElasticSyncMode.Realtime;
+        BatchSize = batchSize;
+    }
+    public void IntervalSync(int intervalInSeconds = 60, int batchSize = 500)
+    {
+        Mode = ElasticSyncMode.Interval;
+        IntervalInSeconds = intervalInSeconds;
+        BatchSize = batchSize;
     }
 
 }

@@ -22,9 +22,8 @@ builder.Services.AddElasticSyncEngine(options =>
 {
     options.UsePostgreSql(builder.Configuration.GetConnectionString("DbConnectionString"));
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
-    options.Mode = ElasticSyncMode.Realtime;
-    options.IntervalInSeconds = 20;
-    options.BatchSize = 500;
+    options.RealTimeSync(batchSize: 400);
+    //options.IntervalSync(intervalInSeconds: 20, batchSize : 500);
     options.MaxRetries = 5;
     options.RetryDelayInSeconds = 20;
     options.EnableMultipleWorkers(new WorkerOptions
