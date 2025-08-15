@@ -1,5 +1,6 @@
 using ElasticSync.Extensions;
 using ElasticSync.Models;
+using ElasticSync.Net.PostgreSql.Services;
 using ElasticSyncExample;
 using ElasticSyncExample.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString")));
 
-builder.Services.AddElasticSyncEngine(options =>
+builder.Services.AddElasticSyncEngine<PostgreeChangeLogService>(options =>
 {
     options.UsePostgreSql(builder.Configuration.GetConnectionString("DbConnectionString"));
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];

@@ -5,9 +5,9 @@ using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
-using ElasticSync.NET.Services.Interface;
 using System.Threading.Channels;
 using System.Linq;
+using ElasticSync.NET.Interface;
 
 namespace ElasticSync.Services;
 
@@ -15,12 +15,12 @@ public class SyncListenerService : BackgroundService
 {
     private readonly ElasticSyncOptions _options;
     private readonly Channel<byte> _notifyChannel;
-    private readonly IElasticSyncNetService _elasticSyncNetService;
+    private readonly IChangeLogService _elasticSyncNetService;
 
     private readonly string _namingPrefix = "elastic_sync_";
     private int Count { get; set; } = 0;
 
-    public SyncListenerService(ElasticSyncOptions options, IElasticSyncNetService elasticSyncNetService)
+    public SyncListenerService(ElasticSyncOptions options, IChangeLogService elasticSyncNetService)
     {
         _options = options;
         _elasticSyncNetService = elasticSyncNetService;

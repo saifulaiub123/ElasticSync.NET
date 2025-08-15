@@ -6,7 +6,7 @@ namespace ElasticSync.Models;
 public class ElasticSyncOptions
 {
     public DatabaseProvider DatabaseProvider { get; set; } = DatabaseProvider.PostgreSQL;
-    internal string ConnectionString { get; set; } = default!;
+    public string ConnectionString { get; set; } = default!;
     public string ElasticsearchUrl { get; set; } = default!;
     public int MaxRetries { get; set; } = 5;
     public int RetryDelayInSeconds { get; set; } = 5; //base for exponential backoff

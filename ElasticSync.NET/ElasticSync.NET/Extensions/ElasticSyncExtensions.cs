@@ -1,17 +1,20 @@
 using ElasticSync.Models;
 using ElasticSync.Services;
-using ElasticSync.NET.Services;
-using ElasticSync.NET.Services.Interface;
+//using ElasticSync.NET.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 using System;
 using System.Threading.Tasks;
+using ElasticSync.NET.Interface;
 
 namespace ElasticSync.Extensions;
 
 public static class ElasticSyncExtensions
 {
-    public static IServiceCollection AddElasticSyncEngine(this IServiceCollection services, Action<ElasticSyncOptions> configure)
+    public static IServiceCollection AddElasticSyncEngine<TRepo>(
+        this IServiceCollection services, 
+        Action<ElasticSyncOptions> configure)
+        where TRepo : class, IChangeLogService
     {
 		try
 		{
@@ -27,7 +30,7 @@ public static class ElasticSyncExtensions
 
             services.AddSingleton<ChangeLogInstaller>();
             services.AddSingleton<ElasticIndexProvisioner>();
-            services.AddSingleton<IElasticSyncNetService, ElasticSyncNetService>();
+            services.AddSingleton<IChangeLogService, TRepo>();
             services.AddHostedService<SyncListenerService>();
 
             Task.Run(async () =>
