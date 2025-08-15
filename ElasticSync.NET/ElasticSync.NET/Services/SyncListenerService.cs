@@ -8,13 +8,11 @@ using System;
 using ElasticSync.NET.Services.Interface;
 using System.Threading.Channels;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace ChangeSync.Elastic.Postgres.Services;
 
 public class SyncListenerService : BackgroundService
 {
-    private readonly ElasticClient _elastic;
     private readonly ChangeSyncOptions _options;
     private readonly Channel<byte> _notifyChannel;
     private readonly IElasticSyncNetService _elasticSyncNetService;
@@ -22,9 +20,8 @@ public class SyncListenerService : BackgroundService
     private readonly string _namingPrefix = "elastic_sync_";
     private int Count { get; set; } = 0;
 
-    public SyncListenerService(ElasticClient elastic, ChangeSyncOptions options, IElasticSyncNetService elasticSyncNetService)
+    public SyncListenerService(ChangeSyncOptions options, IElasticSyncNetService elasticSyncNetService)
     {
-        _elastic = elastic;
         _options = options;
         _elasticSyncNetService = elasticSyncNetService;
         _notifyChannel = Channel.CreateBounded<byte>(new BoundedChannelOptions(1000)
@@ -37,68 +34,63 @@ public class SyncListenerService : BackgroundService
     {
         try
         {
-            if (_options.EnableParallelProcessing)
-            {
-                //var workers = new List<Task>(_options.WorkerOptions.NumberOfWorkers);
-                // Start worker pool
-                var workers = Enumerable.Range(0, _options.WorkerOptions.NumberOfWorkers)
-                .Select(i => 
-                    Task.Run(() => 
-                        WorkerLoopParallelAsync(string.Format("worker_{0}", i + 1), _options.WorkerOptions.BatchSizePerWorker,ct), ct)
+            var noOfWorkers = _options.EnableMultipleWorker ? _options.WorkerOptions.NumberOfWorkers : 1;
+            var batchSize = _options.EnableMultipleWorker ? _options.WorkerOptions.BatchSizePerWorker : _options.BatchSize;
+
+            var workers = Enumerable.Range(0, noOfWorkers)
+                .Select(i =>
+                    Task.Run(() =>
+                        WorkerLoopParallelAsync(string.Format("worker_{0}", i + 1), batchSize, ct), ct)
                     )
                 .ToList();
 
-                // Start listener loop
-                var listenerTask = Task.Run(() => ListenToPgNotifyParallelAsync(ct), ct);
-
-                // Start periodic poll fallback to ensure nothing missed
-                //var pollTask = Task.Run(() => PollFallbackLoopParallelAsync(ct), ct);
-
-                await Task.WhenAll(workers.Concat(new[] { listenerTask }));
-            }
-            else
+            if (_options.Mode == ElasticSyncMode.Realtime)
             {
-                if (_options.Mode == ElasticSyncMode.Realtime)
-                {
-                    await ListenToPgNotifyAsync(ct);
-                }
-                else if (_options.Mode == ElasticSyncMode.Interval)
-                {
-                    while (!ct.IsCancellationRequested)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(_options.PollIntervalSeconds), ct);
-                        await _elasticSyncNetService.ProcessChangeLogsAsync("0", _options.BatchSize, ct);
-                    }
-                }
-            } 
+                var listenerTask = Task.Run(() => ListenToPgNotifyParallelAsync(ct), ct);
+                await Task.WhenAll(workers.Concat(new[] { listenerTask })); 
+            }
+            else if (_options.Mode == ElasticSyncMode.Interval)
+            {
+                var intervalFallbackListner = Task.Run(() => IntervalFallbackListener(ct), ct);
+                await Task.WhenAll(workers.Concat(new[] { intervalFallbackListner }));
+                
+                //while (!ct.IsCancellationRequested)
+                //{
+                //    await Task.Delay(TimeSpan.FromSeconds(_options.IntervalInSeconds), ct);
+
+                //    if (_notifyChannel.Reader.Count == 0)
+                //    {
+                //        await _notifyChannel.Writer.WriteAsync(1, ct);
+                //    }
+                //}
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
         }
     }
-    private async Task WorkerLoopParallelAsync(string workerId, int batchSize, CancellationToken cancellationToken)
+    private async Task WorkerLoopParallelAsync(string workerId, int batchSize, CancellationToken ct)
     {
         // each worker has its own DB connection
         await using var conn = new NpgsqlConnection(_options.PostgresConnectionString);
-        await conn.OpenAsync(cancellationToken);
+        await conn.OpenAsync(ct);
 
-        while (!cancellationToken.IsCancellationRequested)
+        while (!ct.IsCancellationRequested)
         {
             // Wait for a notification token
             try
             {
-                await _notifyChannel.Reader.ReadAsync(cancellationToken);
+                await _notifyChannel.Reader.ReadAsync(ct);
             }
             catch (OperationCanceledException) { break; }
 
             // Process until no more batches (to drain quickly)
-            while (!cancellationToken.IsCancellationRequested)
+            while (!ct.IsCancellationRequested)
             {
-                var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(workerId, batchSize, cancellationToken);
+                var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(workerId, batchSize, ct);
                 if (!hasWork)
                 {
-                    // No more logs to process, break out of the inner loop
                     break;
                 }
             }
@@ -116,7 +108,6 @@ public class SyncListenerService : BackgroundService
             {
                 _ = _notifyChannel.Writer.WriteAsync(1);
             }
-
             Console.WriteLine($"[Listener] Notification received. Woke {_options.WorkerOptions.NumberOfWorkers} workers.");
         };
 
@@ -131,7 +122,6 @@ public class SyncListenerService : BackgroundService
             try
             {
                 await conn.WaitAsync(ct);
-                Console.WriteLine($"{Count++} -- Change detected, processing change logs...");
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex)
@@ -143,16 +133,17 @@ public class SyncListenerService : BackgroundService
         }
     }
 
-    private async Task PollFallbackLoopParallelAsync(CancellationToken ct)
+    private async Task IntervalFallbackListener(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
             // if channel is very empty, add a token so workers will try
-            if (_notifyChannel.Reader.Count == 0)
-            {
-                await _notifyChannel.Writer.WriteAsync(1, ct);
-            }
-            await Task.Delay(_options.WorkerOptions.NotifyListenerPollMs, ct);
+            //if (_notifyChannel.Reader.Count == 0)
+            //{
+                
+            //}
+            await Task.Delay(TimeSpan.FromSeconds(_options.IntervalInSeconds), ct);
+            await _notifyChannel.Writer.WriteAsync(1, ct);
         }
     }
 
@@ -171,7 +162,12 @@ public class SyncListenerService : BackgroundService
             await conn.WaitAsync(ct);
             Console.WriteLine($"{Count++} -- Change detected, processing change logs...");
 
-            await _elasticSyncNetService.ProcessChangeLogsAsync(null, _options.BatchSize, ct);
+            var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(null, _options.BatchSize, ct);
+            if (!hasWork)
+            {
+                // No more logs to process, break out of the inner loop
+                break;
+            }
         }
     } 
 }

@@ -31,12 +31,10 @@ namespace ElasticSync.NET.Services
             {
                 while (true)
                 {
-                    await Task.Delay(1000, ct);
-
                     logs = await FetchUnprocessedLogsAsync(workerId, batchSize, ct);
+                    Console.WriteLine();
                     Console.WriteLine($"Worker {workerId} fetched {logs.Count} logs for processing...");
                     if (!logs.Any()) return false;
-
 
                     var bulk = new BulkDescriptor();
                     var logIdOrder = new List<int>();
@@ -93,6 +91,8 @@ namespace ElasticSync.NET.Services
                     await MarkLogsAsProcessed(successIds, ct);
                     await HandleFailedLogs(failures, ct);
 
+                    Console.WriteLine($"Worker {workerId} processing finished");
+                    Console.WriteLine();
                 }
             }
             catch (Exception ex)
@@ -109,11 +109,7 @@ namespace ElasticSync.NET.Services
 
             try
             {
-                
-
-                Console.WriteLine($"Worker {workerId} started processing logs...");
-
-                if (_options.EnableParallelProcessing)
+                if (_options.EnableMultipleWorker)
                 {
                     //If parallel processing is enabled, we lock the rows to prevent other workers from processing them
                     sql = string.Format(@"
@@ -128,12 +124,13 @@ namespace ElasticSync.NET.Services
                         LIMIT {1}
                         FOR UPDATE SKIP LOCKED
                     )
-                    UPDATE esnet.{2}change_log cl
-                    SET locked_by = '{3}',
+                    UPDATE esnet.{0}change_log cl
+                    SET processed_by = '{2}',
+                        locked_by ='{2}',
                         locked_at = now()
                     FROM cte
                     WHERE cl.id = cte.id
-                    RETURNING cl.id, cl.table_name, cl.operation, cl.record_id, cl.payload, cl.retry_count;", _namingPrefix, batchSize, _namingPrefix, workerId);
+                    RETURNING cl.id, cl.table_name, cl.operation, cl.record_id, cl.payload, cl.retry_count;", _namingPrefix, batchSize, workerId);
                 }
                 else
                 {
@@ -191,7 +188,7 @@ namespace ElasticSync.NET.Services
                 UPDATE esnet.{_namingPrefix}change_log 
                 SET processed = TRUE,
                     last_attempt_at = now(),
-                    --locked_by = NULL,
+                    locked_by = NULL,
                     locked_at = NULL,
                     next_retry_at = NULL
                 WHERE id = ANY(@ids)", conn);
@@ -204,8 +201,6 @@ namespace ElasticSync.NET.Services
                 Console.WriteLine(ex);
             }
         }
-
-
 
         private async Task HandleFailedLogs(List<(int logId, string error)> failures, CancellationToken cancellationToken)
         {
@@ -221,15 +216,16 @@ namespace ElasticSync.NET.Services
                     var cmd = new NpgsqlCommand($@"
                     UPDATE esnet.{_namingPrefix}change_log
                     SET retry_count = retry_count + 1,
+                        locked_by = NULL,
                         last_attempt_at = now(),   
                         last_error = @error,
                         dead_letter = retry_count + 1 >= @maxRetries,
-                        next_retry_at = now() + interval '@retryDelayInSeconds second' END
+                        next_retry_at = now() + @retryDelayInSeconds
                     WHERE id = @id", conn);
 
                     cmd.Parameters.AddWithValue("error", error);
                     cmd.Parameters.AddWithValue("maxRetries", _options.MaxRetries);
-                    cmd.Parameters.AddWithValue("retryDelayInSeconds", _options.RetryDelayInSeconds);
+                    cmd.Parameters.AddWithValue("retryDelayInSeconds", TimeSpan.FromSeconds(_options.RetryDelayInSeconds));
                     cmd.Parameters.AddWithValue("id", logId);
 
                     await cmd.ExecuteNonQueryAsync();

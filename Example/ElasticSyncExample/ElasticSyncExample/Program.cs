@@ -20,13 +20,13 @@ builder.Services.AddElasticSyncEngine(options =>
 {
     options.PostgresConnectionString = builder.Configuration.GetConnectionString("DbConnectionString");
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
-    options.Mode = ElasticSyncMode.Realtime;
-    options.PollIntervalSeconds = 20;
-    options.BatchSize = 20;
+    options.Mode = ElasticSyncMode.Interval;
+    options.IntervalInSeconds = 20;
+    options.BatchSize = 500;
     options.MaxRetries = 5;
-    options.RetryDelayInSeconds = 2;
-    options.EnableParallelProcessing = true;
-    options.WorkerOptions.NumberOfWorkers = 4;
+    options.RetryDelayInSeconds = 20;
+    options.EnableMultipleWorker = false;
+    //options.WorkerOptions.NumberOfWorkers = 4;
     options.Entities = new List<TrackedEntity>
     {
         new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },

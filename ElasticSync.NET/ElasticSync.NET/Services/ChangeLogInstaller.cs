@@ -45,24 +45,6 @@ public class ChangeLogInstaller
     {
         var sb = new StringBuilder();
 
-        // Drop old table
-        sb.AppendLine($@"
-            DROP TABLE IF EXISTS change_log CASCADE;
-        ");
-
-        // Drop old function
-        sb.AppendLine($@"
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM pg_proc 
-                    WHERE proname = 'log_change' AND pronargs = 0
-                ) THEN
-                    DROP FUNCTION log_change() CASCADE;
-                END IF;
-            END $$;
-        ");
-
         sb.AppendLine($@"
             DO $$
                 DECLARE
@@ -86,6 +68,7 @@ public class ChangeLogInstaller
                 last_error TEXT,
                 dead_letter BOOLEAN DEFAULT FALSE,
                 locked_by TEXT,
+                processed_by TEXT,
                 locked_at TIMESTAMP,
                 next_retry_at TIMESTAMP,
                 last_attempt_at TIMESTAMP,
@@ -164,7 +147,7 @@ public class ChangeLogInstaller
                 $$;");   
             }
         }
-        Console.WriteLine(sb.ToString());
+        //Console.WriteLine(sb.ToString());
         return sb.ToString();
     }
     private string CreateIndexIfNotExist()
