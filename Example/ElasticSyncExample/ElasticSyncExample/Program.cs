@@ -27,7 +27,11 @@ builder.Services.AddElasticSyncEngine(options =>
     options.BatchSize = 500;
     options.MaxRetries = 5;
     options.RetryDelayInSeconds = 20;
-    options.EnableMultipleWorker = false;
+    options.EnableMultipleWorkers(new WorkerOptions
+    {
+        BatchSizePerWorker = 300,
+        NumberOfWorkers = 4 //number of parallel worker
+    });
     //options.WorkerOptions.NumberOfWorkers = 4;
     options.Entities = new List<TrackedEntity>
     {
@@ -43,7 +47,7 @@ builder.Services.AddElasticSyncEngine(options =>
 providers => 
 {
     providers.ChangeLogServiceType = typeof(PostgreeChangeLogService);
-    providers.ChangeLogInstallerServiceType = typeof(InstallerService);
+    providers.ChangeLogInstallerServiceType = typeof(PostgresInstallerService);
 });
 
 var app = builder.Build();

@@ -3,7 +3,6 @@ using ElasticSync.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 using System;
-using System.Threading.Tasks;
 using ElasticSync.NET.Interface;
 using ElasticSync.NET.Models;
 using ElasticSync.NET.Services;
@@ -42,19 +41,7 @@ public static class ElasticSyncExtensions
 
 
             services.AddHostedService<SyncListenerService>();
-            services.AddHostedService<StartupInstallerService>();
-
-            //Task.Run(async () =>
-            //{
-            //    await Task.Delay(TimeSpan.FromSeconds(5));
-
-            //    var installer = new ChangeLogInstaller(options);
-            //    await installer.InstallAsync();
-
-            //    var client = new ElasticClient(new ConnectionSettings(new Uri(options.ElasticsearchUrl)));
-            //    var provisioner = new ElasticIndexProvisioner(client, options);
-            //    await provisioner.EnsureIndicesExistAsync();
-            //});
+            services.AddHostedService<StartupService>();
         }
 		catch (Exception ex)
 		{

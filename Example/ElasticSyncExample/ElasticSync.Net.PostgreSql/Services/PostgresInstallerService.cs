@@ -9,12 +9,12 @@ using ElasticSync.NET.Interface;
 
 namespace ElasticSync.Services;
 
-public class InstallerService : IInstallerService
+public class PostgresInstallerService : IInstallerService
 {
     private readonly ElasticSyncOptions _options;
     private readonly string namingPrefix = "elastic_sync_";
 
-    public InstallerService(ElasticSyncOptions options)
+    public PostgresInstallerService(ElasticSyncOptions options)
     {
         _options = options;
     }

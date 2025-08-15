@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace ElasticSync.NET.Services
 {
-    public class StartupInstallerService : IHostedService
+    public class StartupService : IHostedService
     {
         private readonly IInstallerService _installer;
         private readonly ElasticClient _client;
         private readonly ElasticSyncOptions _options;
 
-        public StartupInstallerService(IInstallerService installer,
+        public StartupService(IInstallerService installer,
                                        ElasticClient client,
                                        ElasticSyncOptions options)
         {
@@ -30,7 +30,10 @@ namespace ElasticSync.NET.Services
             await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
 
             // Install database structures
-            await _installer.InstallAsync();
+            if (_installer != null)
+            {
+                await _installer.InstallAsync();
+            }
 
             // Ensure Elasticsearch indices exist
             var provisioner = new ElasticIndexProvisioner(_client, _options);

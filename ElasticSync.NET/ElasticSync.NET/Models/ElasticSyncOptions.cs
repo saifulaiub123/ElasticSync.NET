@@ -13,14 +13,19 @@ public class ElasticSyncOptions
     public int BatchSize { get; set; } = 500; //Number of logs to sync in one batch
     public ElasticSyncMode Mode { get; set; } = ElasticSyncMode.Realtime;
     public int IntervalInSeconds { get; set; } = 60;//Only applicable for Interval mode
-    public bool EnableMultipleWorker { get; set; } = false;
+    public bool EnableMultipleWorker { get; private set; } = false;
     public List<TrackedEntity> Entities { get; set; } = new();
-    public WorkerOptions WorkerOptions { get; set; } = new WorkerOptions();
+    public WorkerOptions WorkerOptions { get; private set; } = new WorkerOptions();
 
     public void UsePostgreSql(string connectionString)
     {
         DatabaseProvider = DatabaseProvider.PostgreSQL;
         ConnectionString = connectionString;
+    }
+    public void EnableMultipleWorkers(WorkerOptions? options = null)
+    {
+        EnableMultipleWorker = true;
+        WorkerOptions = options ?? new WorkerOptions();
     }
 
 }
@@ -28,7 +33,13 @@ public class ElasticSyncOptions
 public class WorkerOptions
 {
     public int BatchSizePerWorker { get; set; } = 250;
-    public int NumberOfWorkers { get; set; } = 4; //number of parallel worker
+    public int NumberOfWorkers { get; set; } = 2; //number of parallel worker
+
+    public WorkerOptions(int batchSizePerWorker = 250, int numberOfWorkers = 2)
+    {
+        BatchSizePerWorker = batchSizePerWorker;
+        NumberOfWorkers = numberOfWorkers;
+    }
 }
 
 public class TrackedEntity
