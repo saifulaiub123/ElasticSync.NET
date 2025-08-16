@@ -13,7 +13,7 @@ public static class ElasticSyncExtensions
     public static IServiceCollection AddElasticSyncEngine(
         this IServiceCollection services, 
         Action<ElasticSyncOptions> configure,
-        IDatabaseServiceProvider providers)
+        Action<ElasticSyncOptions, IServiceCollection>? configureDatabase = null)
     {
 		try
 		{
@@ -22,7 +22,8 @@ public static class ElasticSyncExtensions
 
             //var providerOptions = new ElasticSyncServiceProviders();
             //providers(providerOptions);
-            providers.Configure(options, services);
+            //providers.Configure(options, services);
+            configureDatabase?.Invoke(options, services);
 
             services.AddSingleton(options);
             services.AddSingleton<ElasticClient>(_ =>

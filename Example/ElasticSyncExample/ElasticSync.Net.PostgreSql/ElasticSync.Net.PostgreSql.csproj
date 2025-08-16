@@ -10,8 +10,4 @@
     <ProjectReference Include="..\..\..\ElasticSync.NET\ElasticSync.NET\ElasticSync.NET.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Extentions\" />
-  </ItemGroup>
-
 </Project>

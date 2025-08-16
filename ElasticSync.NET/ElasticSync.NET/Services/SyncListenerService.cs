@@ -11,7 +11,7 @@ using ElasticSync.NET.Enum;
 
 namespace ElasticSync.Services;
 
-public class SyncListenerService : BackgroundService
+public class SyncListenerService : BackgroundService, ISyncListenerBackgroundService
 {
     private readonly ElasticSyncOptions _options;
     private readonly Channel<byte> _notifyChannel;
