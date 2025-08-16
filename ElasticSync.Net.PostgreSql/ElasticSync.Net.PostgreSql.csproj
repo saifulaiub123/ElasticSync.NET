@@ -7,7 +7,7 @@
 		<PackageId>ElasticSync.NET.PostgreSql</PackageId>
 		<PackageIcon>icon.png</PackageIcon>
 		<Version>2.0.0</Version>
-		<Description>Real-time/Interval based data sync with Elasticsearch and PostgreSql database</Description>
+		<Description>Real-time/Interval based high-performance .NET library that sync data between Elasticsearch and PostgreSql database</Description>
 		<PackageTags>postgresql;sqlserver,dot net,elasticsearch;sync;trigger;npgsql;nest;data;etl;fulltextsearch;process;backgroundservice;realtime;interval;schedule;data;database;</PackageTags>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/saifulaiub123/ElasticSync.NET</PackageProjectUrl>

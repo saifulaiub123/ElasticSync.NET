@@ -2,7 +2,7 @@
 
 **ElasticSync.NET** is a high-performance .NET library that synchronizes PostgreSQL data to Elasticsearch in **real-time** with built-in reliability, scalability, and monitoring.
 
-It’s designed for teams that want **instant search indexing** without building and maintaining complex change-tracking pipelines.
+It’s designed for the teams that want a lighweight system for **instant search indexing** without building and maintaining complex change-tracking pipelines or without installing any additional tools/server like Debzium, Kafka etc
 
 ---
 
@@ -10,21 +10,24 @@ It’s designed for teams that want **instant search indexing** without building
 
 - **Real-time sync** from Relational Database to Elasticsearch
 - **Supported Database** PostgreSQL
+- **Interval-based** syncing with configurable intervals
+- **Parallel work** Configurable parallel processing supported for high volume data changes.
 - **Multiple entity type support** (e.g., Products, Orders, Customers)
 - **Automatic trigger & change tracking** in PostgreSQL
-- **Parallel workers** Pending...
 - **Retry logic** for transient errors
 - **Bulk indexing** for performance optimization
-- **Optional dashboard** Pending...
+- **Optional dashboard and monitoring** Pending...
 
 ---
 
 ## 🚀 Getting Started
 
+## To Support PostgreSql Database:
+
 ### Install the NuGet Package
 
 ```sh
-dotnet add package ElasticSync.NET
+dotnet add package ElasticSync.NET.PostgreSql
 ```
 
 # Requirements
@@ -33,18 +36,105 @@ PostgreSQL 13+ (with trigger support)
 Elasticsearch 8.x (or compatible OpenSearch version)
 
 # Basic Usage
+
+# 1. Basic Usages
+
+# 1.1 Use Real-Time Sync
+
 ```sh
+
 builder.Services.AddElasticSyncEngine(options =>
 {
-    options.PostgresConnectionString = builder.Configuration.GetConnectionString("DbConnectionString");
-    options.ElasticsearchUrl = builder.Configuration["ElasticsearchUri"];
-    options.Mode = ElasticSyncMode.Interval;//Default ElasticSyncMode.RealTime
-    options.PollIntervalSeconds = 5;
-    options.Entities.Add
-    (
-        new TrackedEntity { Table = "customers", EntityType = typeof(Customer), PrimaryKey = "id", IndexName = "customers" }
-    );
+    options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
+    options.RealTimeSync();
+    options.MaxRetries = 5;
+    options.RetryDelayInSeconds = 20; 
+    options.Entities = new List<TrackedEntity>
+    {
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers"},
+        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products"},
+    }; 
+}, (options, services) =>
+{
+    options.AddElasticSyncPostgreSqlServices(services, connectionString);
 });
+
+```
+
+# 1.2 Use Real-Time Sync With Multiple Workers for High Volume Data Changes
+
+```sh
+
+builder.Services.AddElasticSyncEngine(options =>
+{
+    options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
+    options.RealTimeSync()
+           .EnableMultipleWorkers(new WorkerOptions
+           {
+                BatchSizePerWorker = 300,
+                NumberOfWorkers = 4
+           });
+    options.MaxRetries = 5;
+    options.RetryDelayInSeconds = 20; 
+    options.Entities = new List<TrackedEntity>
+    {
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers"},
+        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products"},
+    }; 
+}, (options, services) =>
+{
+    options.AddElasticSyncPostgreSqlServices(services, connectionString);
+});
+
+```
+
+# 1.2 Use Interval Sync
+
+```sh
+
+builder.Services.AddElasticSyncEngine(options =>
+{
+    options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
+    options.IntervalSync(intervalInSeconds: 20, batchSize: 500);
+    options.MaxRetries = 5;
+    options.RetryDelayInSeconds = 20; 
+    options.Entities = new List<TrackedEntity>
+    {
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers"},
+        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products"},
+    }; 
+}, (options, services) =>
+{
+    options.AddElasticSyncPostgreSqlServices(services, connectionString);
+});
+
+```
+
+# 1.2 Use Interval Sync With Multiple Workers for High Volume Data Changes
+
+```sh
+
+builder.Services.AddElasticSyncEngine(options =>
+{
+    options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
+    options.IntervalSync(intervalInSeconds: 20, batchSize: 500)
+           .EnableMultipleWorkers(new WorkerOptions
+           {
+               BatchSizePerWorker = 300,
+               NumberOfWorkers = 4 //number of parallel worker
+           });
+    options.MaxRetries = 5;
+    options.RetryDelayInSeconds = 20; 
+    options.Entities = new List<TrackedEntity>
+    {
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers"},
+        new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products"},
+    }; 
+}, (options, services) =>
+{
+    options.AddElasticSyncPostgreSqlServices(services, connectionString);
+});
+
 ```
 # Uninstall/Clean Up DB Object
 
