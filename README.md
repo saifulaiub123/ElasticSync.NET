@@ -20,33 +20,27 @@ It’s designed for the teams that want a lighweight system for **instant search
 
 ---
 
-## 🚀 Getting Started
-
-## To Support PostgreSql Database:
-
-### Install the NuGet Package
+## 🚀 Sync with PostgreSql Database:
+---
+## Install the NuGet Package
 
 ```sh
 dotnet add package ElasticSync.NET.PostgreSql
 ```
 
-# Requirements
+## Requirements
 .NET 6, .NET 7, or .NET 8
 PostgreSQL 13+ (with trigger support)
 Elasticsearch 8.x (or compatible OpenSearch version)
 
-# Basic Usage
-
-# 1. Basic Usages
-
-# 1.1 Use Real-Time Sync
+## Use Real-Time Sync
 
 ```sh
 
 builder.Services.AddElasticSyncEngine(options =>
 {
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
-    options.RealTimeSync();
+    options.RealTimeSync(batchSize: 500);
     options.MaxRetries = 5;
     options.RetryDelayInSeconds = 20; 
     options.Entities = new List<TrackedEntity>
@@ -61,7 +55,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-# 1.2 Use Real-Time Sync With Multiple Workers for High Volume Data Changes
+## Use Real-Time Sync With Multiple Workers for High Volume Data Changes
 
 ```sh
 
@@ -88,7 +82,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-# 1.2 Use Interval Sync
+## Use Interval Sync
 
 ```sh
 
@@ -110,7 +104,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-# 1.2 Use Interval Sync With Multiple Workers for High Volume Data Changes
+## Use Interval Sync With Multiple Workers for High Volume Data Changes
 
 ```sh
 
@@ -136,11 +130,11 @@ builder.Services.AddElasticSyncEngine(options =>
 });
 
 ```
-# Uninstall/Clean Up DB Object
+## Uninstall/Clean Up DB Object
 
 If you want to remove the package to clean up all the database object you need to run a script which you will find under **UninstallScript** folder. **UninstallScript** is applicable from version **1.0.1**
 
-# Contributing
+## Contributing
 
 We welcome contributions!
 Fork the repository
@@ -149,5 +143,5 @@ Commit your changes (git commit -m 'Add my feature')
 Push to your fork (git push origin feature/my-feature)
 Open a Pull Request
 
-# License
+## License
 This project is licensed under the MIT License
