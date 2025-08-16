@@ -1,51 +1,74 @@
+using ElasticSync.NET.Builder;
 using System;
 using System.Collections.Generic;
 
 namespace ElasticSync.Models;
 
-public class ElasticSyncOptions
+public interface IDatabaseConfigurationHandler
 {
-    public DatabaseProvider DatabaseProvider { get; private set; } = DatabaseProvider.PostgreSQL;
-    public string ConnectionString { get; private set; } = default!;
+    void SetDatabaseProvider(DatabaseProvider provider, string connectionString);
+}
+
+public class ElasticSyncOptions : IDatabaseConfigurationHandler
+{
+    
     public string ElasticsearchUrl { get; set; } = default!;
     public int MaxRetries { get; set; } = 5;
     public int RetryDelayInSeconds { get; set; } = 5; //base for exponential backoff
     public int BatchSize { get; private set; } = 500; //Number of logs to sync in one batch
     public SyncOptions? SyncOptions { get; private set; }
-    public SyncMode Mode { get; private set; } = SyncMode.RealTime;
+    public SyncMode SyncMode { get; private set; }
     public int IntervalInSeconds { get; private set; } = 60; //Only applicable for Interval mode
-    public bool EnableMultipleWorker { get; private set; } = false;
+    public bool IsMultipleWorkers { get; private set; } = false;
     public List<TrackedEntity> Entities { get; set; } = new();
     public WorkerOptions WorkerOptions { get; private set; } = new WorkerOptions();
 
-    public void UsePostgreSql(string connectionString)
+    // Internal database config (cannot be set from Program.cs)
+    internal DatabaseProvider DatabaseProvider { get; private set; }
+    public string ConnectionString { get; private set; } = string.Empty;
+
+
+    public RealTimeSyncBuilder RealTimeSync(int batchSize = 500)
     {
-        DatabaseProvider = DatabaseProvider.PostgreSQL;
-        ConnectionString = connectionString;
+        if (IsIntervalSync)
+            throw new InvalidOperationException("Interval sync mode already set. Cannot set both RealTimeSync and IntervalSync.");
+
+        IsRealTimeSync = true;
+        SyncMode = SyncMode.RealTime;
+        BatchSize = batchSize;
+        //SyncOptions = SyncOptions.RealTime(batchSize);
+
+        return new RealTimeSyncBuilder(this);
     }
-    public void EnableMultipleWorkers(WorkerOptions? options = null)
+
+    public IntervalSyncBuilder IntervalSync(int intervalInSeconds = 60, int batchSize = 500)
     {
-        EnableMultipleWorker = true;
+        if (IsRealTimeSync != null)
+            throw new InvalidOperationException("RealTime sync mode already set. Cannot set both RealTimeSync and IntervalSync.");
+        //SyncOptions = SyncOptions.Interval(intervalInSeconds, batchSize);
+
+        IsIntervalSync = true;
+        SyncMode = SyncMode.Interval;
+        IntervalInSeconds = intervalInSeconds;
+        BatchSize = batchSize;
+
+        return new IntervalSyncBuilder(this);
+    }
+
+    internal void EnableMultipleWorkers(WorkerOptions? options = null)
+    {
+        IsMultipleWorkers = true;
         WorkerOptions = options ?? new WorkerOptions();
     }
 
-
-
-    public void RealTimeSync(int batchSize = 500)
+    void IDatabaseConfigurationHandler.SetDatabaseProvider(DatabaseProvider provider, string connectionString)
     {
-        if (SyncOptions != null)
-            throw new InvalidOperationException("Interval sync mode already set. Cannot set both RealTimeSync and IntervalSync.");
-        SyncOptions = SyncOptions.RealTime(batchSize);
+        DatabaseProvider = provider;
+        ConnectionString = connectionString;
     }
 
-    public void IntervalSync(int intervalInSeconds = 60, int batchSize = 500)
-    {
-        if (SyncOptions != null)
-            throw new InvalidOperationException("RealTime sync mode already set. Cannot set both RealTimeSync and IntervalSync.");
-        SyncOptions = SyncOptions.Interval(intervalInSeconds, batchSize);
-    }
-    public bool IsRealTime => SyncOptions?.Mode == SyncMode.RealTime;
-    public bool IsInterval => SyncOptions?.Mode == SyncMode.Interval;
+    public bool IsRealTimeSync { get; private set; }
+    public bool IsIntervalSync { get; private set; }
 
 }
 

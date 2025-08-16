@@ -34,8 +34,8 @@ public class SyncListenerService : BackgroundService
     {
         try
         {
-            var noOfWorkers = _options.EnableMultipleWorker ? _options.WorkerOptions.NumberOfWorkers : 1;
-            var batchSize = _options.EnableMultipleWorker ? _options.WorkerOptions.BatchSizePerWorker : _options.BatchSize;
+            var noOfWorkers = _options.IsMultipleWorkers ? _options.WorkerOptions.NumberOfWorkers : 1;
+            var batchSize = _options.IsMultipleWorkers ? _options.WorkerOptions.BatchSizePerWorker : _options.BatchSize;
 
             var workers = Enumerable.Range(0, noOfWorkers)
                 .Select(i =>
@@ -44,12 +44,12 @@ public class SyncListenerService : BackgroundService
                     )
                 .ToList();
 
-            if (_options.Mode == SyncMode.RealTime)
+            if (_options.SyncMode == SyncMode.RealTime)
             {
                 var listenerTask = Task.Run(() => ListenToPgNotifyParallelAsync(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { listenerTask })); 
             }
-            else if (_options.Mode == SyncMode.Interval)
+            else if (_options.SyncMode == SyncMode.Interval)
             {
                 var intervalFallbackListner = Task.Run(() => IntervalFallbackListener(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { intervalFallbackListner }));

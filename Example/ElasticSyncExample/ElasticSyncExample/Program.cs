@@ -18,20 +18,25 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString")));
 
+
+var dbProvider = new PostgreDbConfigurations(builder.Configuration.GetConnectionString("DbConnectionString"));
 builder.Services.AddElasticSyncEngine(options =>
 {
-    options.UsePostgreSql(builder.Configuration.GetConnectionString("DbConnectionString"));
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
-    options.RealTimeSync();
-    //options.IntervalSync(intervalInSeconds: 20, batchSize : 500);
+    options.RealTimeSync()
+           .EnableMultipleWorkers(new WorkerOptions
+           {
+                BatchSizePerWorker = 300,
+                NumberOfWorkers = 4
+           });
+    //options.IntervalSync(intervalInSeconds: 20, batchSize : 500)
+    //       .EnableMultipleWorkers(new WorkerOptions
+    //       {
+    //           BatchSizePerWorker = 300,
+    //           NumberOfWorkers = 4 //number of parallel worker
+    //       });
     options.MaxRetries = 5;
     options.RetryDelayInSeconds = 20; 
-    options.EnableMultipleWorkers(new WorkerOptions
-    {
-        BatchSizePerWorker = 300,
-        NumberOfWorkers = 4 //number of parallel worker
-    });
-    //options.WorkerOptions.NumberOfWorkers = 4;
     options.Entities = new List<TrackedEntity>
     {
         new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
@@ -42,12 +47,8 @@ builder.Services.AddElasticSyncEngine(options =>
         //new TrackedEntity { Table = "Departments", EntityType = typeof(Department), PrimaryKey = "Id", IndexName = "departments" },
         //new TrackedEntity { Table = "Addresses", EntityType = typeof(Address), PrimaryKey = "Id", IndexName = "addresses" },
     }; 
-},
-providers => 
-{
-    providers.ChangeLogServiceType = typeof(PostgreeChangeLogService);
-    providers.ChangeLogInstallerServiceType = typeof(PostgresInstallerService);
-});
+}, dbProvider
+);
 
 var app = builder.Build();
 

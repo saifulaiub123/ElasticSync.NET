@@ -6,14 +6,14 @@ using System.Text.Json;
 
 namespace ElasticSync.Net.PostgreSql.Services
 {
-    public class PostgreeChangeLogService : IChangeLogService
+    public class PostgreChangeLogService : IChangeLogService
     {
        
         private readonly ElasticClient _elastic;
         private readonly ElasticSyncOptions _options;
         private readonly string _namingPrefix = "elastic_sync_";
 
-        public PostgreeChangeLogService(ElasticClient elastic, ElasticSyncOptions options)
+        public PostgreChangeLogService(ElasticClient elastic, ElasticSyncOptions options)
         {
             _elastic = elastic;
             _options = options;
@@ -105,7 +105,7 @@ namespace ElasticSync.Net.PostgreSql.Services
 
             try
             {
-                if (_options.EnableMultipleWorker)
+                if (_options.IsMultipleWorkers)
                 {
                     //If parallel processing is enabled, we lock the rows to prevent other workers from processing them
                     sql = string.Format(@"

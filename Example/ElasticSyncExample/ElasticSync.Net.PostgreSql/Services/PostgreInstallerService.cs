@@ -1,20 +1,17 @@
 using Npgsql;
 using System.Text;
 using ElasticSync.Models;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
 using System.Diagnostics;
 using ElasticSync.NET.Interface;
 
 namespace ElasticSync.Services;
 
-public class PostgresInstallerService : IInstallerService
+public class PostgreInstallerService : IInstallerService
 {
     private readonly ElasticSyncOptions _options;
     private readonly string namingPrefix = "elastic_sync_";
 
-    public PostgresInstallerService(ElasticSyncOptions options)
+    public PostgreInstallerService(ElasticSyncOptions options)
     {
         _options = options;
     }
