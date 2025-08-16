@@ -135,6 +135,11 @@ builder.Services.AddElasticSyncEngine(options =>
 
 <img width="1536" height="1024" alt="arch" src="https://github.com/user-attachments/assets/5b8e1cac-86ea-44b7-9fa8-1c8c18354c67" />
 
+## 📁 Project Structure
+
+- **ElasticSync.Net** – core interfaces, abstraction, and engine
+- **ElasticSync.Net.PostgreSql** – PostgreSQL-specific implementation
+- **ElasticSync.Net.SqlServer** – Coming soon
 
 ## 🧱 Uninstall/Clean Up DB Object
 
@@ -155,8 +160,9 @@ Commit your changes (git commit -m 'Add my feature')
 Push to your fork (git push origin feature/my-feature)
 Open a Pull Request
 
-## 📚 License
+## 📜 License
 This project is licensed under the MIT License
+MIT © 2025 **ElasticSync.NET**
 
 ## 📅 Maintainer
 **ElasticSync.NET** is maintained by **Md. Saiful Islam**
