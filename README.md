@@ -1,6 +1,7 @@
 # ElasticSync.NET
 
-**ElasticSync.NET** is a high-performance, real-time data synchronization engine for syncing relational database changes to Elasticsearch. It supports **PostgreSQL** today, with a **Modular Core** that allows future extensions for **SQL Server**, **MySQL**, and more.
+**ElasticSync.NET** is a **high-performance**, **real-time** data synchronization engine for syncing relational database changes to Elasticsearch. It supports **PostgreSQL** today, with a **Modular Core** that allows future extensions for **SQL Server**, **MySQL**, and more.
+It supports both **trigger-based** and **interval-based** change tracking, with **parallel processing**, **dead-letter queuing**, and **bulk indexing** support.
 
 It’s designed for the teams who want a lighweight system for **Instant Search Indexing** without building and maintaining complex change-tracking pipelines or without installing any additional tools/server like Debzium, Kafka etc.
 
@@ -15,11 +16,24 @@ It’s designed for the teams who want a lighweight system for **Instant Search 
 - **Impact on DB** Minimal impact on source database
 - **Multiple entity type support** (e.g., Products, Orders, Customers)
 - **Automatic trigger & change tracking** in PostgreSQL
-- **Retry logic** Dead-letter queue and retry logic
+- **Retry logic** Retry logic with exponential backoff
+- **Dead-letter** queue for failed operations
 - **Bulk indexing** for performance optimization
 - **Dashboard and monitoring** Pending...
+- **Modular design** (core + PostgreSQL-specific provider)
+-** Metrics**-friendly architecture
 
 ---
+
+## 📈 Performance
+
+Tested with 1000 inserts/sec:
+- Throughput: ~12,000 records/min per node (scalable with workers)
+- Latency: <2 seconds (average) with trigger-based realtime mode
+- Durable retry with exponential backoff
+
+Partitioning **esnet.elastic_sync_change_log** table can improves batch processing performance significantly.
+
 
 ## 🚀 Sync with PostgreSql Database:
 ---
@@ -148,8 +162,10 @@ If you want to remove the package to clean up all the database object you need t
 ## 🌐 Future Plans
 - Extend the project for **Sql Server** and **Mysql database**
 - Support for **EntityFramework**
-- Expose API to get the Statistics like **Syncing Latency**, **Pending Data to Process**, **Data Processed Count by Date**
-- **Dashboard and Real Time Monitoring**
+- Expose API to get the Statistics like **Average processing lag**, **Unprocessed logs count per table**, **Success/failure rate per sync** etc
+- Auth middleware for Elastic endpoints
+- Dashboard and Real Time Monitoring
+- Built-in metrics export (Prometheus/Grafana)
 
 ## 🙏 Contributing
 
