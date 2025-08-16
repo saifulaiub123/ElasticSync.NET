@@ -19,7 +19,7 @@ namespace ElasticSync.Net.PostgreSql.Services
             _options = options;
         }
 
-        public virtual async Task<bool> ProcessChangeLogsAsync(string workerId, int batchSize, CancellationToken ct)
+        public virtual async Task<bool> ProcessChangeLogsAsync(string? workerId, int batchSize, CancellationToken ct)
         {
             var logs = new List<ChangeLogEntry>(batchSize);
 
@@ -27,13 +27,14 @@ namespace ElasticSync.Net.PostgreSql.Services
             {
                 while (true)
                 {
-                    logs = await FetchUnprocessedLogsAsync(workerId, batchSize, ct);
+                    logs = await GetUnprocessedLogsAsync(workerId, batchSize, ct);
                     Console.WriteLine();
                     Console.WriteLine($"Worker {workerId} fetched {logs.Count} logs for processing...");
+
                     if (!logs.Any()) return false;
 
                     var bulk = new BulkDescriptor();
-                    var logIdOrder = new List<int>();
+                    var logIdOrder = new List<int>(logs.Count);
 
                     foreach (var log in logs)
                     {
@@ -98,7 +99,7 @@ namespace ElasticSync.Net.PostgreSql.Services
             return true;
         }
 
-        public virtual async Task<List<ChangeLogEntry>> FetchUnprocessedLogsAsync(string workerId, int batchSize, CancellationToken cancellationToken)
+        public virtual async Task<List<ChangeLogEntry>> GetUnprocessedLogsAsync(string? workerId, int batchSize, CancellationToken cancellationToken)
         {
             var logs = new List<ChangeLogEntry>(batchSize);
             string sql;

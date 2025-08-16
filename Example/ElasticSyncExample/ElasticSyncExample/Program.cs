@@ -8,10 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -43,12 +40,9 @@ builder.Services.AddElasticSyncEngine(options =>
     options.RetryDelayInSeconds = 20; 
     options.Entities = new List<TrackedEntity>
     {
-        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
-        //new TrackedEntity { Table = "Orders", EntityType = typeof(Order), PrimaryKey = "Id", IndexName = "orders" },
-        //new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
+        new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id" }
     }; 
-}, 
-(options, services) =>
+}, (options, services) =>
 {
     options.AddElasticSyncPostgreSqlServices(services, connectionString);
 });

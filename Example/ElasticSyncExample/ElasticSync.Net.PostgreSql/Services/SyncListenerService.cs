@@ -3,7 +3,6 @@ using ElasticSync.Models;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Channels;
 using ElasticSync.NET.Interface;
-using ElasticSync.NET.Enum;
 
 namespace ElasticSync.Net.PostgreSql.Services;
 
@@ -40,12 +39,12 @@ public class SyncListenerService : BackgroundService, ISyncListenerHostedService
                     )
                 .ToList();
 
-            if (_options.SyncMode == SyncMode.RealTime)
+            if (_options.IsRealTimeSync)
             {
                 var listenerTask = Task.Run(() => ListenToPgNotifyParallelAsync(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { listenerTask })); 
             }
-            else if (_options.SyncMode == SyncMode.Interval)
+            else if (_options.IsIntervalSync)
             {
                 var intervalFallbackListner = Task.Run(() => IntervalFallbackListener(ct), ct);
                 await Task.WhenAll(workers.Concat(new[] { intervalFallbackListner }));
@@ -53,36 +52,43 @@ public class SyncListenerService : BackgroundService, ISyncListenerHostedService
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            throw;
         }
     }
     private async Task WorkerLoopParallelAsync(string workerId, int batchSize, CancellationToken ct)
     {
         // each worker has its own DB connection
-        await using var conn = new NpgsqlConnection(_options.ConnectionString);
-        await conn.OpenAsync(ct);
-
-        while (!ct.IsCancellationRequested)
+        try
         {
-            // Wait for a notification token
-            try
-            {
-                await _notifyChannel.Reader.ReadAsync(ct);
-            }
-            catch (OperationCanceledException) 
-            { 
-                break; 
-            }
+            await using var conn = new NpgsqlConnection(_options.ConnectionString);
+            await conn.OpenAsync(ct);
 
-            // Process until no more batches (to drain quickly)
             while (!ct.IsCancellationRequested)
             {
-                var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(workerId, batchSize, ct);
-                if (!hasWork)
+                // Wait for a notification token
+                try
+                {
+                    await _notifyChannel.Reader.ReadAsync(ct);
+                }
+                catch (OperationCanceledException)
                 {
                     break;
                 }
+
+                // Process until no more batches (to drain quickly)
+                while (!ct.IsCancellationRequested)
+                {
+                    var hasWork = await _elasticSyncNetService.ProcessChangeLogsAsync(workerId, batchSize, ct);
+                    if (!hasWork)
+                    {
+                        break;
+                    }
+                }
             }
+        }
+        catch (Exception)
+        {
+            throw;
         }
     }
 
@@ -97,7 +103,6 @@ public class SyncListenerService : BackgroundService, ISyncListenerHostedService
             {
                 _ = _notifyChannel.Writer.WriteAsync(1);
             }
-            Console.WriteLine($"[Listener] Notification received. Woke {_options.WorkerOptions.NumberOfWorkers} workers.");
         };
 
         await using var cmd = conn.CreateCommand();
@@ -126,11 +131,6 @@ public class SyncListenerService : BackgroundService, ISyncListenerHostedService
     {
         while (!ct.IsCancellationRequested)
         {
-            // if channel is very empty, add a token so workers will try
-            //if (_notifyChannel.Reader.Count == 0)
-            //{
-                
-            //}
             await Task.Delay(TimeSpan.FromSeconds(_options.IntervalInSeconds), ct);
             await _notifyChannel.Writer.WriteAsync(1, ct);
         }

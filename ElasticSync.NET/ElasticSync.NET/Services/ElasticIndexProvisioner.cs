@@ -20,12 +20,14 @@ public class ElasticIndexProvisioner
     {
         foreach (var entity in _options.Entities)
         {
-            var baseIndex = entity.IndexName ?? entity.Table.ToLower();
-            var indexName = entity.IndexVersion is not null ? $"{baseIndex}-{entity.IndexVersion}" : baseIndex;
+            var indexName = entity.IndexVersion is not null ? $"{entity.IndexName}-{entity.IndexVersion}" : entity.IndexName;
 
-            var exists = await _client.Indices.ExistsAsync(indexName);
-            if (!exists.Exists)
-                Console.WriteLine($"Index - {indexName} - not exist");
+            var result = await _client.Indices.ExistsAsync(indexName);
+            if (!result.ApiCall.Success)
+                throw new Exception(result.ApiCall.OriginalException.ToString());
+
+            if (!result.Exists)
+                Console.WriteLine($"Elastic Search Index - {indexName} - not exist");
             
             
             //var createResponse = await _client.Indices.CreateAsync(indexName, c =>
