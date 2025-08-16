@@ -1,14 +1,12 @@
 using ElasticSync.NET.Builder;
 using ElasticSync.NET.Enum;
+using ElasticSync.NET.Interface;
 using System;
 using System.Collections.Generic;
 
 namespace ElasticSync.Models;
 
-public interface IDatabaseConfigurationHandler
-{
-    void SetDatabaseProvider(DatabaseProvider provider, string connectionString);
-}
+
 
 public class ElasticSyncOptions : IDatabaseConfigurationHandler
 {

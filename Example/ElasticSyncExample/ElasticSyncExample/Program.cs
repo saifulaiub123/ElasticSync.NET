@@ -24,7 +24,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 
-var dbProvider = new PostgreDbConfigurations(connectionString);
 builder.Services.AddElasticSyncEngine(options =>
 {
     options.ElasticsearchUrl = builder.Configuration["Elasticsearch:Uri"];
@@ -53,7 +52,6 @@ builder.Services.AddElasticSyncEngine(options =>
 {
     options.AddElasticSyncPostgreSqlServices(services, connectionString);
 });
-
 
 
 var app = builder.Build();

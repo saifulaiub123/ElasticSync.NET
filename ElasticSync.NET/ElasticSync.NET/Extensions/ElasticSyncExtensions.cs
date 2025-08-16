@@ -13,17 +13,14 @@ public static class ElasticSyncExtensions
     public static IServiceCollection AddElasticSyncEngine(
         this IServiceCollection services, 
         Action<ElasticSyncOptions> configure,
-        Action<ElasticSyncOptions, IServiceCollection>? configureDatabase = null)
+        Action<ElasticSyncOptions, IServiceCollection>? configureDatabaseServices = null)
     {
 		try
 		{
             var options = new ElasticSyncOptions();
             configure(options);
 
-            //var providerOptions = new ElasticSyncServiceProviders();
-            //providers(providerOptions);
-            //providers.Configure(options, services);
-            configureDatabase?.Invoke(options, services);
+            configureDatabaseServices?.Invoke(options, services);
 
             services.AddSingleton(options);
             services.AddSingleton<ElasticClient>(_ =>
@@ -31,13 +28,6 @@ public static class ElasticSyncExtensions
                 var settings = new ConnectionSettings(new Uri(options.ElasticsearchUrl));
                 return new ElasticClient(settings);
             });
-
-
-            //if(providerOptions.ChangeLogServiceType != null)
-            //    services.AddSingleton(typeof(IChangeLogService), providerOptions.ChangeLogServiceType);
-
-            //if (providerOptions.ChangeLogInstallerServiceType != null)
-            //    services.AddSingleton(typeof(IInstallerService), providerOptions.ChangeLogInstallerServiceType);
 
             services.AddSingleton<ElasticIndexProvisioner>();
             services.AddHostedService<StartupService>();
