@@ -184,6 +184,6 @@ This project is licensed under the MIT License
 MIT © 2025 **ElasticSync.NET**
 
 ## 📅 Maintainer
-**ElasticSync.NET** is maintained by **Md. Saiful Islam**
+**ElasticSync.NET** is maintained by **<a href="https://github.com/saifulaiub123">Md. Saiful Islam</a>**
 
 For support, bug reports, or feature requests, please open an issue on GitHub.
