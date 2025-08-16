@@ -3,7 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/v/ElasticSync.Net.svg)](https://www.nuget.org/packages/ElasticSync.Net)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ElasticSync.Net.svg)](https://www.nuget.org/packages/ElasticSync.Net)
 
-**ElasticSync.NET** is a **high-performance**, **real-time** data synchronization engine for syncing relational database changes to Elasticsearch. It supports **PostgreSQL** today, with a **Modular Core** that allows future extensions for **SQL Server**, **MySQL**, and more.
+**ElasticSync.Net** is a **high-performance**, **real-time** data synchronization engine for syncing relational database changes to Elasticsearch. It supports **PostgreSQL** today, with a **Modular Core** that allows future extensions for **SQL Server**, **MySQL**, and more.
 It supports both **trigger-based** and **interval-based** change tracking, with **parallel processing**, **dead-letter queuing**, and **bulk indexing** support.
 
 It’s designed for the teams who want a lighweight system for **Instant Search Indexing** without building and maintaining complex change-tracking pipelines or without installing any additional tools/server like Debzium, Kafka etc.
