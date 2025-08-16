@@ -1,4 +1,4 @@
-# ElasticSync.NET
+# ElasticSync.Net
 
 [![NuGet](https://img.shields.io/nuget/v/ElasticSync.Net.svg)](https://www.nuget.org/packages/ElasticSync.Net)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ElasticSync.Net.svg)](https://www.nuget.org/packages/ElasticSync.Net)
