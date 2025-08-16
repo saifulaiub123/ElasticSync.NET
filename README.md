@@ -44,7 +44,7 @@ dotnet add package ElasticSync.NET.PostgreSql
 ```
 
 ## ⚙️Requirements
-.NET 6, .NET 7, or .NET 8
+.NET 8, .NET 9
 PostgreSQL 13+ (with trigger support)
 Elasticsearch 8.x (or compatible OpenSearch version)
 
