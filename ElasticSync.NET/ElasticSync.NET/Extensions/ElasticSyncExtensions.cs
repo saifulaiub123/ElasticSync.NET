@@ -3,8 +3,6 @@ using ElasticSync.NET.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Nest;
 using System;
-using ElasticSync.NET.Interface;
-using ElasticSync.NET.Services;
 
 namespace ElasticSync.NET.Extensions;
 
