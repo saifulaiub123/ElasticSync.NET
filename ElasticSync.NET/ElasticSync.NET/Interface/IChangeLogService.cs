@@ -1,6 +1,4 @@
-﻿using ElasticSync.Models;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace ElasticSync.NET.Interface

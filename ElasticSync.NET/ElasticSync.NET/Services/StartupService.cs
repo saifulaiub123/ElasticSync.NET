@@ -1,5 +1,5 @@
 ﻿using ElasticSync.NET.Interface;
-using ElasticSync.Services;
+using ElasticSync.NET.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;

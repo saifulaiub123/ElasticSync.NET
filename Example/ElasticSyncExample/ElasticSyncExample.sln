@@ -7,9 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSyncExample", "Elast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.NET", "..\..\ElasticSync.NET\ElasticSync.NET\ElasticSync.NET.csproj", "{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.Net.PostgreSql", "ElasticSync.Net.PostgreSql\ElasticSync.Net.PostgreSql.csproj", "{262846E0-D798-4F1F-9E2A-4E1917C2543C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.Net.SqlServer", "ElasticSync.Net.SqlServer\ElasticSync.Net.SqlServer.csproj", "{29E207E5-2988-4A8A-A333-179E78031034}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.Net.PostgreSql", "..\..\ElasticSync.Net.PostgreSql\ElasticSync.Net.PostgreSql.csproj", "{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,14 @@ Global
 		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B9D8B63-66D9-4A63-B797-97EAF0DC6238}.Release|Any CPU.Build.0 = Release|Any CPU
-		{262846E0-D798-4F1F-9E2A-4E1917C2543C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{262846E0-D798-4F1F-9E2A-4E1917C2543C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{262846E0-D798-4F1F-9E2A-4E1917C2543C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{262846E0-D798-4F1F-9E2A-4E1917C2543C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{29E207E5-2988-4A8A-A333-179E78031034}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{29E207E5-2988-4A8A-A333-179E78031034}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29E207E5-2988-4A8A-A333-179E78031034}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29E207E5-2988-4A8A-A333-179E78031034}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

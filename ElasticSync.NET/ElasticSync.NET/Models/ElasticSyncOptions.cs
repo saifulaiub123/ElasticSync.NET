@@ -4,7 +4,7 @@ using ElasticSync.NET.Interface;
 using System;
 using System.Collections.Generic;
 
-namespace ElasticSync.Models;
+namespace ElasticSync.NET.Models;
 
 public class ElasticSyncOptions : IDatabaseConfigurationHandler
 {

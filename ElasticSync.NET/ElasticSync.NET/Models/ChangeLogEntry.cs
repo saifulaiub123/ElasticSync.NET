@@ -1,6 +1,6 @@
 using System;
 
-namespace ElasticSync.Models;
+namespace ElasticSync.NET.Models;
 
 public class ChangeLogEntry
 {

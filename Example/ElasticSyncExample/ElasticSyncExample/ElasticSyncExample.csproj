@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ElasticSync.Net.PostgreSql\ElasticSync.Net.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\..\ElasticSync.Net.PostgreSql\ElasticSync.Net.PostgreSql.csproj" />
   </ItemGroup>
 
 </Project>

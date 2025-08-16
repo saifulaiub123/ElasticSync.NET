@@ -1,5 +1,5 @@
-using ElasticSync.Extensions;
-using ElasticSync.Models;
+using ElasticSync.NET.Extensions;
+using ElasticSync.NET.Models;
 using ElasticSync.Net.PostgreSql.Extentions;
 using ElasticSyncExample;
 using ElasticSyncExample.Models;

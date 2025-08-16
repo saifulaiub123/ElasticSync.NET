@@ -1,9 +1,9 @@
 using Nest;
-using ElasticSync.Models;
+using ElasticSync.NET.Models;
 using System.Threading.Tasks;
 using System;
 
-namespace ElasticSync.Services;
+namespace ElasticSync.NET.Services;
 
 public class ElasticIndexProvisioner
 {

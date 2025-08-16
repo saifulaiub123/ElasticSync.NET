@@ -1,9 +1,10 @@
-﻿using ElasticSync.Models;
+﻿using ElasticSync.NET.Models;
 using ElasticSync.Net.PostgreSql.Services;
 using ElasticSync.NET.Enum;
 using ElasticSync.NET.Interface;
-using ElasticSync.Services;
+using ElasticSync.NET.Services;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 
 namespace ElasticSync.Net.PostgreSql.Extentions

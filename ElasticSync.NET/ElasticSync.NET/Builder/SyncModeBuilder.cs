@@ -1,4 +1,4 @@
-﻿using ElasticSync.Models;
+﻿using ElasticSync.NET.Models;
 
 
 namespace ElasticSync.NET.Builder

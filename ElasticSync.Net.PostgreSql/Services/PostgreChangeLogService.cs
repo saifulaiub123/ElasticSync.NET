@@ -1,8 +1,13 @@
-﻿using ElasticSync.Models;
+﻿using ElasticSync.NET.Models;
 using ElasticSync.NET.Interface;
 using Nest;
 using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ElasticSync.Net.PostgreSql.Services
 {

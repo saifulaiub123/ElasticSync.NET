@@ -1,4 +1,4 @@
-﻿using ElasticSync.Models;
+﻿using ElasticSync.NET.Models;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
