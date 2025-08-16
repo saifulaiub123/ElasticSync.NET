@@ -11,7 +11,7 @@ namespace ElasticSync.Net.PostgreSql.Extentions
 
     public static class PostgreSqlElasticSyncExtensions
     {
-        public static void UsePostgreSql(
+        public static void AddElasticSyncPostgreSqlServices(
             this ElasticSyncOptions options,
             IServiceCollection services,
             string connectionString)
@@ -26,6 +26,8 @@ namespace ElasticSync.Net.PostgreSql.Extentions
             // Register PostgreSQL-specific services
             services.AddSingleton<IChangeLogService, PostgreChangeLogService>();
             services.AddSingleton<IInstallerService, PostgreInstallerService>();
+
+            services.AddHostedService<SyncListenerService>();
 
             // Future: add more PostgreSQL-specific DI registrations here
         }

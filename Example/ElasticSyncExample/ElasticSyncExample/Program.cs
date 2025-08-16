@@ -51,7 +51,7 @@ builder.Services.AddElasticSyncEngine(options =>
 }, 
 (options, services) =>
 {
-    options.UsePostgreSql(services, connectionString);
+    options.AddElasticSyncPostgreSqlServices(services, connectionString);
 });
 
 

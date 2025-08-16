@@ -1,17 +1,13 @@
 using Npgsql;
 using ElasticSync.Models;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
 using System.Threading.Channels;
-using System.Linq;
 using ElasticSync.NET.Interface;
 using ElasticSync.NET.Enum;
 
 namespace ElasticSync.Services;
 
-public class SyncListenerService : BackgroundService, ISyncListenerBackgroundService
+public class SyncListenerService : BackgroundService, ISyncListenerHostedService
 {
     private readonly ElasticSyncOptions _options;
     private readonly Channel<byte> _notifyChannel;
@@ -73,7 +69,10 @@ public class SyncListenerService : BackgroundService, ISyncListenerBackgroundSer
             {
                 await _notifyChannel.Reader.ReadAsync(ct);
             }
-            catch (OperationCanceledException) { break; }
+            catch (OperationCanceledException) 
+            { 
+                break; 
+            }
 
             // Process until no more batches (to drain quickly)
             while (!ct.IsCancellationRequested)

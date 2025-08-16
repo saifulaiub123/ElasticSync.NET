@@ -40,8 +40,6 @@ public static class ElasticSyncExtensions
             //    services.AddSingleton(typeof(IInstallerService), providerOptions.ChangeLogInstallerServiceType);
 
             services.AddSingleton<ElasticIndexProvisioner>();
-
-            services.AddHostedService<SyncListenerService>();
             services.AddHostedService<StartupService>();
         }
 		catch (Exception ex)
