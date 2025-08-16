@@ -41,7 +41,7 @@ public class ElasticSyncOptions : IDatabaseConfigurationHandler
 
     public IntervalSyncBuilder IntervalSync(int intervalInSeconds = 60, int batchSize = 500)
     {
-        if (IsRealTimeSync != null)
+        if (IsRealTimeSync)
             throw new InvalidOperationException("RealTime sync mode already set. Cannot set both RealTimeSync and IntervalSync.");
 
         IsIntervalSync = true;
