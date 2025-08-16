@@ -131,9 +131,10 @@ builder.Services.AddElasticSyncEngine(options =>
 });
 
 ```
-## Real Time Syncing Background Process with Diagram
+## ⚙️ Real Time Syncing Background Process with Diagram
 
 <img width="1536" height="1024" alt="arch" src="https://github.com/user-attachments/assets/5b8e1cac-86ea-44b7-9fa8-1c8c18354c67" />
+
 
 ## 🧱 Uninstall/Clean Up DB Object
 
