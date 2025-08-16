@@ -1,4 +1,5 @@
 ﻿using ElasticSync.Models;
+using ElasticSync.NET.Enum;
 using ElasticSync.NET.Interface;
 using ElasticSync.Services;
 using Microsoft.Extensions.DependencyInjection;

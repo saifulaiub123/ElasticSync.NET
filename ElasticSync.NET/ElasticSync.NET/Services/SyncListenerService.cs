@@ -1,5 +1,4 @@
 using Npgsql;
-using Nest;
 using ElasticSync.Models;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using System;
 using System.Threading.Channels;
 using System.Linq;
 using ElasticSync.NET.Interface;
+using ElasticSync.NET.Enum;
 
 namespace ElasticSync.Services;
 

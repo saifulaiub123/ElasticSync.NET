@@ -1,4 +1,5 @@
 using ElasticSync.NET.Builder;
+using ElasticSync.NET.Enum;
 using System;
 using System.Collections.Generic;
 

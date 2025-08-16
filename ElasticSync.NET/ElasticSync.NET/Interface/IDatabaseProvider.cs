@@ -1,5 +1,6 @@
 ﻿
 using ElasticSync.Models;
+using ElasticSync.NET.Enum;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ElasticSync.NET.Interface
