@@ -1,39 +1,40 @@
 # ElasticSync.NET
 
-**ElasticSync.NET** is a high-performance .NET library that synchronizes PostgreSQL data to Elasticsearch in **real-time** with built-in reliability, scalability, and monitoring.
+**ElasticSync.NET** is a high-performance, real-time data synchronization engine for syncing relational database changes to Elasticsearch. It supports **PostgreSQL** today, with a **Modular Core** that allows future extensions for **SQL Server**, **MySQL**, and more.
 
-It’s designed for the teams that want a lighweight system for **instant search indexing** without building and maintaining complex change-tracking pipelines or without installing any additional tools/server like Debzium, Kafka etc
+It’s designed for the teams who want a lighweight system for **Instant Search Indexing** without building and maintaining complex change-tracking pipelines or without installing any additional tools/server like Debzium, Kafka etc.
 
 ---
 
 ## ✨ Features
 
+- **Supported database so far** PostgreSQL
 - **Real-time sync** from Relational Database to Elasticsearch
-- **Supported Database** PostgreSQL
 - **Interval-based** syncing with configurable intervals
-- **Parallel work** Configurable parallel processing supported for high volume data changes.
+- **Parallel work** Configurable Parallel workers for high-throughput scenarios like (1000/2000+ rows/sec).
+- **Impact on DB** Minimal impact on source database
 - **Multiple entity type support** (e.g., Products, Orders, Customers)
 - **Automatic trigger & change tracking** in PostgreSQL
-- **Retry logic** for transient errors
+- **Retry logic** Dead-letter queue and retry logic
 - **Bulk indexing** for performance optimization
-- **Optional dashboard and monitoring** Pending...
+- **Dashboard and monitoring** Pending...
 
 ---
 
 ## 🚀 Sync with PostgreSql Database:
 ---
-## Install the NuGet Package
+## ⚙️ Install the NuGet Package
 
 ```sh
 dotnet add package ElasticSync.NET.PostgreSql
 ```
 
-## Requirements
+## ⚙️Requirements
 .NET 6, .NET 7, or .NET 8
 PostgreSQL 13+ (with trigger support)
 Elasticsearch 8.x (or compatible OpenSearch version)
 
-## Use Real-Time Sync
+## ⚙️ Use Real-Time Sync
 
 ```sh
 
@@ -55,7 +56,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-## Use Real-Time Sync With Multiple Workers for High Volume Data Changes
+## ⚙️ Use Real-Time Sync With Multiple Workers for High Volume Data Changes
 
 ```sh
 
@@ -82,7 +83,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-## Use Interval Sync
+## ⚙️ Use Interval Sync
 
 ```sh
 
@@ -104,7 +105,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-## Use Interval Sync With Multiple Workers for High Volume Data Changes
+## ⚙️ Use Interval Sync With Multiple Workers for High Volume Data Changes
 
 ```sh
 
@@ -130,11 +131,17 @@ builder.Services.AddElasticSyncEngine(options =>
 });
 
 ```
-## Uninstall/Clean Up DB Object
+## 🧱 Uninstall/Clean Up DB Object
 
 If you want to remove the package to clean up all the database object you need to run a script which you will find under **UninstallScript** folder. **UninstallScript** is applicable from version **1.0.1**
 
-## Contributing
+## 🌐 Future Plans
+- Extend the project for **Sql Server** and **Mysql database**
+- Support for **EntityFramework**
+- Expose API to get the Statistics like **Syncing Latency**, **Pending Data to Process**, **Data Processed Count by Date**
+- **Dashboard and Real Time Monitoring**
+
+## 🙏 Contributing
 
 We welcome contributions!
 Fork the repository
@@ -143,5 +150,8 @@ Commit your changes (git commit -m 'Add my feature')
 Push to your fork (git push origin feature/my-feature)
 Open a Pull Request
 
-## License
+## 📚 License
 This project is licensed under the MIT License
+
+## 📅 Maintainer
+**ElasticSync.NET** is maintained by **Md. Saiful Islam**
