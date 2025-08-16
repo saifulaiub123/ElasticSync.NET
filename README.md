@@ -181,7 +181,7 @@ Open a Pull Request
 
 ## 📜 License
 This project is licensed under the MIT License
-MIT © 2025 **ElasticSync.NET**
+MIT © 2025 **ElasticSync.Net**
 
 ## 📅 Maintainer
 **ElasticSync.NET** is maintained by **<a href="https://github.com/saifulaiub123">Md. Saiful Islam</a>**
