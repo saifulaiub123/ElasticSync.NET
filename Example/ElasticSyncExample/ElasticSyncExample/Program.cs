@@ -1,7 +1,6 @@
 using ElasticSync.Extensions;
 using ElasticSync.Models;
 using ElasticSync.Net.PostgreSql.Services;
-using ElasticSync.Services;
 using ElasticSyncExample;
 using ElasticSyncExample.Models;
 using Microsoft.EntityFrameworkCore;
@@ -41,11 +40,7 @@ builder.Services.AddElasticSyncEngine(options =>
     {
         new TrackedEntity { Table = "Customers", EntityType = typeof(Customer), PrimaryKey = "Id", IndexName = "customers" },
         //new TrackedEntity { Table = "Orders", EntityType = typeof(Order), PrimaryKey = "Id", IndexName = "orders" },
-        //new TrackedEntity { Table = "OrderItems", EntityType = typeof(OrderItem), PrimaryKey = "Id", IndexName = "orderitems" },
         //new TrackedEntity { Table = "Products", EntityType = typeof(Product), PrimaryKey = "Id", IndexName = "products" },
-        //new TrackedEntity { Table = "Employees", EntityType = typeof(Employee), PrimaryKey = "Id", IndexName = "employees" },
-        //new TrackedEntity { Table = "Departments", EntityType = typeof(Department), PrimaryKey = "Id", IndexName = "departments" },
-        //new TrackedEntity { Table = "Addresses", EntityType = typeof(Address), PrimaryKey = "Id", IndexName = "addresses" },
     }; 
 }, dbProvider
 );

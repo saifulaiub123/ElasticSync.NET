@@ -11,8 +11,8 @@ namespace ElasticSync.Net.PostgreSql.Services
 
         public PostgreDbConfigurations(string connectionString)
         {
-            //if (_connectionString == null)
-            //    throw new InvalidOperationException("Database connection string is not configured.");
+            if (connectionString == null)
+                throw new InvalidOperationException("Database connection string is not configured.");
 
             _connectionString = connectionString;
         }

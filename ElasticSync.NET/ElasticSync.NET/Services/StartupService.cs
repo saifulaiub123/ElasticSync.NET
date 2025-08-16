@@ -1,8 +1,6 @@
-﻿using ElasticSync.Models;
-using ElasticSync.NET.Interface;
-using ElasticSync.Services;
+﻿using ElasticSync.NET.Interface;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Nest;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,33 +9,34 @@ namespace ElasticSync.NET.Services
 {
     public class StartupService : IHostedService
     {
-        private readonly IInstallerService _installer;
-        private readonly ElasticClient _client;
-        private readonly ElasticSyncOptions _options;
+        private readonly IServiceProvider _serviceProvider;
 
-        public StartupService(IInstallerService installer,
-                                       ElasticClient client,
-                                       ElasticSyncOptions options)
+        public StartupService(IServiceProvider serviceProvider)
         {
-            _installer = installer;
-            _client = client;
-            _options = options;
+            _serviceProvider = serviceProvider;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken ct)
         {
-            // Optional delay to wait for DB or other dependencies
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-
-            // Install database structures
-            if (_installer != null)
+            _ = Task.Run(async () =>
             {
-                await _installer.InstallAsync();
-            }
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), ct);
 
-            // Ensure Elasticsearch indices exist
-            var provisioner = new ElasticIndexProvisioner(_client, _options);
-            await provisioner.EnsureIndicesExistAsync();
+                    using var scope = _serviceProvider.CreateScope();
+                    var installer = scope.ServiceProvider.GetService<IInstallerService>();
+
+                    if (installer != null)
+                        await installer.InstallAsync(ct);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error installing: {ex.Message}");
+                }
+            }, ct);
+
+            return Task.CompletedTask; // Do not await the inner task — return immediately
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

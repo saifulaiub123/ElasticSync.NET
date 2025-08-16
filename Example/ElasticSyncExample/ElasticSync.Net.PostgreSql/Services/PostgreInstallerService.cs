@@ -16,22 +16,16 @@ public class PostgreInstallerService : IInstallerService
         _options = options;
     }
 
-    public async Task InstallAsync()
+    public async Task InstallAsync(CancellationToken ct)
     {
         try
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
             await using var conn = new NpgsqlConnection(_options.ConnectionString);
             await conn.OpenAsync();
 
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = BuildInstallScript(conn);
-            await cmd.ExecuteNonQueryAsync();
-
-            sw.Stop();
-            Console.Write($"times taken to create 30 triggers :  {sw.Elapsed.Duration().TotalMilliseconds} ms");
+            await cmd.ExecuteNonQueryAsync(ct);
         }
         catch (Exception ex)
         {
