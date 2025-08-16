@@ -28,12 +28,12 @@ builder.Services.AddElasticSyncEngine(options =>
                 BatchSizePerWorker = 300,
                 NumberOfWorkers = 4
            });
-    //options.IntervalSync(intervalInSeconds: 20, batchSize : 500)
-    //       .EnableMultipleWorkers(new WorkerOptions
-    //       {
-    //           BatchSizePerWorker = 300,
-    //           NumberOfWorkers = 4 //number of parallel worker
-    //       });
+    options.IntervalSync(intervalInSeconds: 20, batchSize: 500)
+           .EnableMultipleWorkers(new WorkerOptions
+           {
+               BatchSizePerWorker = 300,
+               NumberOfWorkers = 4 //number of parallel worker
+           });
     options.MaxRetries = 5;
     options.RetryDelayInSeconds = 20; 
     options.Entities = new List<TrackedEntity>

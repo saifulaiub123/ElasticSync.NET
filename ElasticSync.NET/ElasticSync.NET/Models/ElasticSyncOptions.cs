@@ -16,14 +16,12 @@ public class ElasticSyncOptions : IDatabaseConfigurationHandler
     public int MaxRetries { get; set; } = 5;
     public int RetryDelayInSeconds { get; set; } = 5; //base for exponential backoff
     public int BatchSize { get; private set; } = 500; //Number of logs to sync in one batch
-    public SyncOptions? SyncOptions { get; private set; }
     public SyncMode SyncMode { get; private set; }
     public int IntervalInSeconds { get; private set; } = 60; //Only applicable for Interval mode
     public bool IsMultipleWorkers { get; private set; } = false;
     public List<TrackedEntity> Entities { get; set; } = new();
     public WorkerOptions WorkerOptions { get; private set; } = new WorkerOptions();
 
-    // Internal database config (cannot be set from Program.cs)
     internal DatabaseProvider DatabaseProvider { get; private set; }
     public string ConnectionString { get; private set; } = string.Empty;
 
@@ -36,7 +34,6 @@ public class ElasticSyncOptions : IDatabaseConfigurationHandler
         IsRealTimeSync = true;
         SyncMode = SyncMode.RealTime;
         BatchSize = batchSize;
-        //SyncOptions = SyncOptions.RealTime(batchSize);
 
         return new RealTimeSyncBuilder(this);
     }
@@ -45,7 +42,6 @@ public class ElasticSyncOptions : IDatabaseConfigurationHandler
     {
         if (IsRealTimeSync != null)
             throw new InvalidOperationException("RealTime sync mode already set. Cannot set both RealTimeSync and IntervalSync.");
-        //SyncOptions = SyncOptions.Interval(intervalInSeconds, batchSize);
 
         IsIntervalSync = true;
         SyncMode = SyncMode.Interval;
@@ -94,36 +90,3 @@ public class TrackedEntity
     public Action<Nest.TypeMappingDescriptor<object>>? CustomMapping { get; set; }
 }
 
-public class SyncOptions
-{
-    public SyncMode Mode { get; private set; }
-    public int BatchSize { get; private set; }
-    public int? IntervalInSeconds { get; private set; }
-
-    private SyncOptions(SyncMode mode, int batchSize, int? intervalInSeconds = null)
-    {
-        Mode = mode;
-        BatchSize = batchSize;
-        IntervalInSeconds = intervalInSeconds;
-    }
-
-    public static SyncOptions RealTime(int batchSize) =>
-        new SyncOptions(SyncMode.RealTime, batchSize);
-
-    public static SyncOptions Interval(int intervalInSeconds, int batchSize) =>
-        new SyncOptions(SyncMode.Interval, batchSize, intervalInSeconds);
-}
-
-public enum SyncMode
-{
-    RealTime,
-    Interval
-}
-
-public enum DatabaseProvider
-{
-    PostgreSQL,
-    SqlServer,
-    MySql,
-    Sqlite
-}
