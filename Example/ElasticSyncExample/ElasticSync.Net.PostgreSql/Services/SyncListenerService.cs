@@ -5,7 +5,7 @@ using System.Threading.Channels;
 using ElasticSync.NET.Interface;
 using ElasticSync.NET.Enum;
 
-namespace ElasticSync.Services;
+namespace ElasticSync.Net.PostgreSql.Services;
 
 public class SyncListenerService : BackgroundService, ISyncListenerHostedService
 {

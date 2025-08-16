@@ -4,7 +4,7 @@ using ElasticSync.Models;
 using System.Diagnostics;
 using ElasticSync.NET.Interface;
 
-namespace ElasticSync.Services;
+namespace ElasticSync.Net.PostgreSql.Services;
 
 public class PostgreInstallerService : IInstallerService
 {
