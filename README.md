@@ -10,7 +10,7 @@ It’s designed for the teams who want a lighweight system for **Instant Search 
 
 ---
 
-## ✨ Features
+## Features
 
 - **Supported database so far** PostgreSQL
 - **Real-time sync** from Relational Database to Elasticsearch
@@ -28,7 +28,7 @@ It’s designed for the teams who want a lighweight system for **Instant Search 
 
 ---
 
-## 📈 Performance
+## Performance
 
 Tested with 1000 inserts/sec:
 - Throughput: ~12,000 records/min per node (scalable with workers)
@@ -38,20 +38,20 @@ Tested with 1000 inserts/sec:
 Partitioning **esnet.elastic_sync_change_log** table can improves batch processing performance significantly.
 
 
-## 🚀 Sync with PostgreSql Database:
+## Sync with PostgreSql Database:
 ---
-## ⚙️ Install the NuGet Package
+## Install the NuGet Package
 
 ```sh
 dotnet add package ElasticSync.NET.PostgreSql
 ```
 
-## ⚙️Requirements
+## Requirements
 .NET 8, .NET 9
 PostgreSQL 13+ (with trigger support)
 Elasticsearch 8.x (or compatible OpenSearch version)
 
-## ⚙️ Use Real-Time Sync
+## Use Real-Time Sync
 
 ```sh
 
@@ -73,7 +73,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-## ⚙️ Use Real-Time Sync With Multiple Workers for High Volume Data Changes
+## Use Real-Time Sync With Multiple Workers for High Volume Data Changes
 
 ```sh
 
@@ -100,7 +100,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-## ⚙️ Use Interval Sync
+## Use Interval Sync
 
 ```sh
 
@@ -122,7 +122,7 @@ builder.Services.AddElasticSyncEngine(options =>
 
 ```
 
-## ⚙️ Use Interval Sync With Multiple Workers for High Volume Data Changes
+## Use Interval Sync With Multiple Workers for High Volume Data Changes
 
 ```sh
 
@@ -148,21 +148,21 @@ builder.Services.AddElasticSyncEngine(options =>
 });
 
 ```
-## ⚙️ Real Time Syncing Background Process with Diagram
+## Real Time Syncing Background Process with Diagram
 
 <img width="1536" height="1024" alt="arch" src="https://github.com/user-attachments/assets/5b8e1cac-86ea-44b7-9fa8-1c8c18354c67" />
 
-## 📁 Project Structure
+## Project Structure
 
 - **ElasticSync.Net** – core interfaces, abstraction, and engine
 - **ElasticSync.Net.PostgreSql** – PostgreSQL-specific implementation
 - **ElasticSync.Net.SqlServer** – Coming soon
 
-## 🧱 Uninstall/Clean Up DB Object
+## Uninstall/Clean Up DB Object
 
 If you want to remove the package to clean up all the database object you need to run a script which you will find under **UninstallScript** folder. **UninstallScript** is applicable from version **1.0.1**
 
-## 🌐 Future Plans
+## Future Plans
 - Extend the project for **Sql Server** and **Mysql database**
 - Support for **EntityFramework**
 - Expose API to get the Statistics like **Average processing lag**, **Unprocessed logs count per table**, **Success/failure rate per sync** etc
@@ -170,7 +170,7 @@ If you want to remove the package to clean up all the database object you need t
 - Dashboard and Real Time Monitoring
 - Built-in metrics export (Prometheus/Grafana)
 
-## 🙏 Contributing
+## Contributing
 
 We welcome contributions!
 Fork the repository
@@ -179,7 +179,7 @@ Commit your changes (git commit -m 'Add my feature')
 Push to your fork (git push origin feature/my-feature)
 Open a Pull Request
 
-## 📜 License
+## License
 This project is licensed under the MIT License
 MIT © 2025 **ElasticSync.Net**
 
