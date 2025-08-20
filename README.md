@@ -164,11 +164,10 @@ If you want to remove the package to clean up all the database object you need t
 
 ## Future Plans
 - Extend the project for **Sql Server** and **Mysql database**
-- Support for **EntityFramework**
 - Expose API to get the Statistics like **Average processing lag**, **Unprocessed logs count per table**, **Success/failure rate per sync** etc
 - Auth middleware for Elastic endpoints
 - Dashboard and Real Time Monitoring
-- Built-in metrics export (Prometheus/Grafana)
+- Built-in metrics export
 
 ## Contributing
 
