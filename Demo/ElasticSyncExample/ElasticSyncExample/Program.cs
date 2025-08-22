@@ -1,9 +1,10 @@
 using ElasticSync.NET.Extensions;
 using ElasticSync.NET.Models;
-using ElasticSync.Net.PostgreSql.Extentions;
+//using ElasticSync.Net.PostgreSql.Extentions;
 using ElasticSyncExample;
 using ElasticSyncExample.Models;
 using Microsoft.EntityFrameworkCore;
+using ElasticSync.Net.PostgreSql.CDC.Extentions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +44,8 @@ builder.Services.AddElasticSyncEngine(options =>
     }; 
 }, (options, services) =>
 {
-    options.AddElasticSyncPostgreSqlServices(services, connectionString);
+    //options.AddElasticSyncPostgreSqlServices(services, connectionString);
+    options.AddElasticSyncPostgreSqlCdcServices(services, connectionString);
 });
 
 

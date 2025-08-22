@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.Net.SqlServer",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.Net.PostgreSql", "..\..\ElasticSync.Net.PostgreSql\ElasticSync.Net.PostgreSql.csproj", "{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElasticSync.Net.PostgreSql.CDC", "..\..\ElasticSync.Net.PostgreSql.CDC\ElasticSync.Net.PostgreSql.CDC\ElasticSync.Net.PostgreSql.CDC.csproj", "{8EAC2A3B-C1BB-4CD8-ABB1-C21A6DD98C14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0F4CAA2-8B62-4708-859C-CF18B3D58DCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EAC2A3B-C1BB-4CD8-ABB1-C21A6DD98C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EAC2A3B-C1BB-4CD8-ABB1-C21A6DD98C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EAC2A3B-C1BB-4CD8-ABB1-C21A6DD98C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EAC2A3B-C1BB-4CD8-ABB1-C21A6DD98C14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
